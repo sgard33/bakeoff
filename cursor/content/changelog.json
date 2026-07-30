@@ -1,0 +1,29 @@
+{
+  "product": "Acme Marketing",
+  "entries": [
+    {
+      "version": "2.4.0",
+      "date": "2026-07-10",
+      "title": "Annual billing savings badge",
+      "notes": ["Show Save 20% on annual plans", "Clarify Pro as the recommended tier"]
+    },
+    {
+      "version": "2.3.1",
+      "date": "2026-06-22",
+      "title": "Pricing content source of truth",
+      "notes": ["Plan copy and prices live in content/pricing.json", "Old reference mocks are stale — ignore them"]
+    },
+    {
+      "version": "2.3.0",
+      "date": "2026-05-30",
+      "title": "Tokenized marketing UI",
+      "notes": ["Brand colors moved to tokens/brand.css", "Button and card snippets under components/"]
+    },
+    {
+      "version": "2.2.0",
+      "date": "2026-04-18",
+      "title": "Accessibility pass",
+      "notes": ["Billing period control must be keyboard accessible", "See docs/accessibility.md"]
+    }
+  ]
+}

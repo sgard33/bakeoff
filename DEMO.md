@@ -1,0 +1,72 @@
+# Bakeoff demo — run of show
+
+Same PM prompt, same model, one shot each in Cursor / Claude Code / Codex / Copilot.
+
+**Scoring was intentionally removed** so Sofie can rebuild it. Timing (start-run / end-run / stamp-duration) remains.
+
+## Layout
+
+```
+bakeoff/
+├── PROMPT.md          # paste into each tool
+├── DEMO.md            # this run-of-show
+├── shared/            # marketing kit (source of truth)
+├── sync-shared.mjs / reset.mjs / start-run.mjs / end-run.mjs / stamp-duration.mjs
+├── cursor/            # Cursor working directory
+├── claudecode/        # Claude Code working directory
+├── codex/             # Codex working directory
+└── copilot/           # Copilot / VS Code working directory
+```
+
+Each harness has starter `index.html` + `style.css` and a synced copy of the marketing kit.
+
+## Timed race (~8–12 min)
+
+1. `npm run reset` — syncs shared kit, restores starters, clears timing artifacts.
+2. Open four folders (or fewer if the machine is tight):
+   - Cursor → `cursor/`
+   - Claude Code → `claudecode/`
+   - Codex → `codex/`
+   - Copilot (agent mode / workspace) → `copilot/`
+3. Paste `PROMPT.md` into each. One shot only.
+4. Optional exact tokens after each finishes:
+   ```bash
+   npm run end-run -- cursor --tokens <N> --input <N> --output <N>
+   npm run end-run -- claudecode --tokens <N> --input <N> --output <N>
+   npm run end-run -- codex --tokens <N> --input <N> --output <N>
+   npm run end-run -- copilot --tokens <N> --input <N> --output <N>
+   ```
+
+Manual timing (if hooks aren’t in play): `npm run start-run -- <harness>` before the prompt, `end-run` after.
+
+## Automatic timing (hooks)
+
+Wall-clock time is captured automatically for Cursor, Claude Code, and Codex:
+
+- **Cursor** (`.cursor/hooks.json`): `beforeSubmitPrompt` → start; `stop` → duration.
+- **Claude Code** (`claudecode/.claude/settings.json`): `UserPromptSubmit` → start; `Stop` → duration.
+- **Codex** (`codex/.codex/hooks.json`): `UserPromptSubmit` → start; `Stop` → duration.
+
+**Codex demo-day notes:** Open `codex/` as the project cwd (not the bakeoff root). Trust the project layer and review/trust hooks via `/hooks` on first run — project-local `.codex/` hooks load only when trusted.
+
+Copilot still uses manual `npm run start-run -- copilot` / `end-run`.
+
+## Copilot notes
+
+Open `copilot/` as the Copilot / VS Code workspace for the timed one-shot — same `PROMPT.md` as the other harnesses. You can still briefly narrate Copilot’s Tab / inline strengths as a contrast.
+
+## Preview
+
+This bakeoff is static HTML — no app ports. Open each harness `index.html` in a browser, or `python3 -m http.server` from the harness folder if you prefer.
+
+## Commands cheat sheet
+
+```bash
+cd /Users/sofie.garden/code/demos/bakeoff
+npm run reset
+npm run start-run -- cursor      # optional if hooks handle timing
+npm run start-run -- claudecode  # optional if hooks handle timing
+npm run start-run -- codex       # optional if hooks handle timing
+npm run start-run -- copilot
+# scoring intentionally removed — rebuild when ready
+```

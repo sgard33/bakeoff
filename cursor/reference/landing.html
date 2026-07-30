@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acme — Build faster together</title>
+  <link rel="stylesheet" href="../styles/base.css">
+  <link rel="stylesheet" href="../styles/buttons.css">
+  <link rel="stylesheet" href="../styles/cards.css">
+  <style>
+    .hero {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: var(--space-8) var(--space-5);
+      text-align: center;
+    }
+    .hero h1 { font-size: 2.5rem; margin-bottom: var(--space-3); }
+    .hero p { color: var(--color-fg-muted); margin-bottom: var(--space-5); }
+    .hero-actions { display: flex; gap: var(--space-3); justify-content: center; }
+    .hero-actions .btn { width: auto; min-width: 160px; }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-5);
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: var(--space-6) var(--space-5) var(--space-8);
+    }
+    @media (max-width: 768px) {
+      .feature-grid { grid-template-columns: 1fr; }
+      .hero-actions { flex-direction: column; align-items: stretch; }
+    }
+  </style>
+</head>
+<body>
+  <section class="hero">
+    <h1>Ship product updates without the chaos</h1>
+    <p class="muted">Acme helps product teams plan, build, and launch in one place.</p>
+    <div class="hero-actions">
+      <a class="btn btn--primary cta" href="../index.html">See pricing</a>
+      <a class="btn cta" href="./about.html">About Acme</a>
+    </div>
+  </section>
+
+  <section class="feature-grid" aria-label="Features">
+    <article class="card">
+      <h2 class="tier-name">Plan</h2>
+      <p class="muted">Roadmaps and priorities your whole team can follow.</p>
+    </article>
+    <article class="card">
+      <h2 class="tier-name">Build</h2>
+      <p class="muted">Ship with shared context instead of scattered docs.</p>
+    </article>
+    <article class="card">
+      <h2 class="tier-name">Launch</h2>
+      <p class="muted">Coordinate releases with clear owners and status.</p>
+    </article>
+  </section>
+</body>
+</html>

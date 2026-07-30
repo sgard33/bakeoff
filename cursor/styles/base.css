@@ -1,0 +1,22 @@
+@import '../tokens/brand.css';
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--color-bg);
+  color: var(--color-fg);
+  line-height: 1.5;
+}
+
+a {
+  color: var(--color-accent);
+}
+
+.muted {
+  color: var(--color-fg-muted);
+}

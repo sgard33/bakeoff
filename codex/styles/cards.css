@@ -1,0 +1,29 @@
+@import '../tokens/brand.css';
+
+.card,
+.pricing-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 1.75rem;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.pricing-card--popular {
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-popular);
+}
+
+.badge,
+.badge-popular,
+.save-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  border-radius: var(--radius-pill);
+}

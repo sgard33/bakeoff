@@ -1,0 +1,20 @@
+<!-- Canonical billing toggle — accessible monthly / annual switch -->
+
+<div class="billing-toggle" role="group" aria-label="Billing period">
+  <span class="billing-label" data-period="monthly">Monthly</span>
+  <label class="toggle-switch">
+    <input type="checkbox" id="annual-toggle" aria-label="Toggle annual billing">
+    <span class="toggle-slider"></span>
+  </label>
+  <span class="billing-label" data-period="annual">
+    Annual <span class="badge save-badge">Save 20%</span>
+  </span>
+</div>
+
+<!--
+Requirements:
+- class billing-toggle
+- role="group" + aria-label
+- checkbox or equivalent control with an accessible name
+- Save badge text comes from content/pricing.json → annual_save_label
+-->

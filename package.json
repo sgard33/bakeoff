@@ -1,0 +1,11 @@
+{
+  "name": "bakeoff-demo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sync": "node sync-shared.mjs",
+    "reset": "node reset.mjs",
+    "start-run": "node start-run.mjs",
+    "end-run": "node end-run.mjs"
+  }
+}

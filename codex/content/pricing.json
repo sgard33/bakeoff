@@ -1,0 +1,53 @@
+{
+  "page_title": "Pricing Plans",
+  "headline": "Simple, transparent pricing",
+  "subtitle": "Choose the plan that fits your team.",
+  "annual_discount_percent": 20,
+  "annual_save_label": "Save 20%",
+  "recommended_plan": "pro",
+  "popular_badge": "Most popular",
+  "billing": {
+    "monthly_label": "Monthly",
+    "annual_label": "Annual"
+  },
+  "plans": [
+    {
+      "id": "starter",
+      "name": "Starter",
+      "monthly": 19,
+      "annual": 15,
+      "cta": "Get Starter",
+      "features": [
+        "Up to 5 projects",
+        "Basic analytics",
+        "Email support"
+      ]
+    },
+    {
+      "id": "pro",
+      "name": "Pro",
+      "monthly": 49,
+      "annual": 39,
+      "cta": "Get Pro",
+      "features": [
+        "Unlimited projects",
+        "Advanced analytics",
+        "Priority support",
+        "Team collaboration"
+      ]
+    },
+    {
+      "id": "enterprise",
+      "name": "Enterprise",
+      "monthly": 99,
+      "annual": 79,
+      "cta": "Contact sales",
+      "features": [
+        "Custom integrations",
+        "Dedicated account manager",
+        "SSO & audit logs",
+        "SLA guarantee"
+      ]
+    }
+  ]
+}

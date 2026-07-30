@@ -1,0 +1,13 @@
+.DS_Store
+
+node_modules/
+
+.env
+.env.*
+
+*/bakeoff/run-*.json
+
+**/.claude/settings.local.json
+
+dist/
+.next/

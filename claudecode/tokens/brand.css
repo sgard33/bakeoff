@@ -1,0 +1,29 @@
+/**
+ * Canonical brand tokens for the marketing site.
+ * Pricing and other pages should consume these CSS variables — do not hardcode brand colors.
+ */
+:root {
+  --color-bg: #f7f7f4;
+  --color-fg: #26251e;
+  --color-fg-muted: rgba(38, 37, 30, 0.7);
+  --color-accent: #f54e00;
+  --color-card: #f2f1ed;
+  --color-border: #e1e0db;
+  --color-on-accent: #ffffff;
+
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-pill: 999px;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-8: 3rem;
+
+  --shadow-popular: 0 8px 24px rgba(245, 78, 0, 0.15);
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --breakpoint-mobile: 768px;
+}

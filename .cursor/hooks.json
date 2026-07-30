@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeSubmitPrompt": [
+      {
+        "command": "node start-run.mjs cursor --if-missing"
+      }
+    ],
+    "stop": [
+      {
+        "command": "node stamp-duration.mjs cursor",
+        "timeout": 30
+      }
+    ]
+  }
+}
