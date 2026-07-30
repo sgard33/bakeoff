@@ -3,13 +3,128 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pricing - Starter</title>
+  <meta name="description" content="Simple, transparent pricing for Acme. Choose Starter, Pro, or Enterprise.">
+  <title>Pricing Plans — Acme</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main class="container">
-    <h1>Pricing</h1>
-    <p class="subtitle">Update this page to match the task in PROMPT.md. Search the project for pricing content, brand tokens, and component patterns.</p>
+  <main class="pricing-page">
+    <header class="pricing-header">
+      <p class="eyebrow">Pricing plans</p>
+      <h1>Simple, transparent pricing</h1>
+      <p class="subtitle">Choose the plan that fits your team.</p>
+
+      <div class="billing-toggle" role="group" aria-label="Billing period">
+        <span class="billing-label billing-label--monthly" data-period="monthly">Monthly</span>
+        <label class="toggle-switch">
+          <span class="sr-only">Toggle annual billing</span>
+          <input type="checkbox" id="annual-toggle" aria-label="Toggle annual billing">
+          <span class="toggle-slider" aria-hidden="true"></span>
+        </label>
+        <span class="billing-label billing-label--annual" data-period="annual">
+          Annual
+          <span class="badge save-badge">Save 20%</span>
+        </span>
+      </div>
+
+      <p class="sr-only" id="billing-status" aria-live="polite">Showing monthly pricing.</p>
+    </header>
+
+    <section class="pricing-grid" aria-label="Pricing plans">
+      <article class="pricing-card card" data-tier="starter">
+        <div class="tier-heading">
+          <h2 class="tier-name">Starter</h2>
+        </div>
+
+        <p class="tier-price">
+          <span class="price-amount" data-monthly="19" data-annual="15">$19</span>
+          <span class="price-period">/ month</span>
+        </p>
+        <p class="billing-note" aria-hidden="true">Billed monthly</p>
+
+        <ul class="tier-features">
+          <li>Up to 5 projects</li>
+          <li>Basic analytics</li>
+          <li>Email support</li>
+        </ul>
+
+        <button type="button" class="btn cta">Get Starter</button>
+      </article>
+
+      <article class="pricing-card card pricing-card--popular" data-tier="pro">
+        <span class="badge badge-popular">Most popular</span>
+
+        <div class="tier-heading">
+          <h2 class="tier-name">Pro</h2>
+        </div>
+
+        <p class="tier-price">
+          <span class="price-amount" data-monthly="49" data-annual="39">$49</span>
+          <span class="price-period">/ month</span>
+        </p>
+        <p class="billing-note" aria-hidden="true">Billed monthly</p>
+
+        <ul class="tier-features">
+          <li>Unlimited projects</li>
+          <li>Advanced analytics</li>
+          <li>Priority support</li>
+          <li>Team collaboration</li>
+        </ul>
+
+        <button type="button" class="btn btn--primary cta">Get Pro</button>
+      </article>
+
+      <article class="pricing-card card" data-tier="enterprise">
+        <div class="tier-heading">
+          <h2 class="tier-name">Enterprise</h2>
+        </div>
+
+        <p class="tier-price">
+          <span class="price-amount" data-monthly="99" data-annual="79">$99</span>
+          <span class="price-period">/ month</span>
+        </p>
+        <p class="billing-note" aria-hidden="true">Billed monthly</p>
+
+        <ul class="tier-features">
+          <li>Custom integrations</li>
+          <li>Dedicated account manager</li>
+          <li>SSO &amp; audit logs</li>
+          <li>SLA guarantee</li>
+        </ul>
+
+        <button type="button" class="btn cta">Contact sales</button>
+      </article>
+    </section>
   </main>
+
+  <script>
+    const annualToggle = document.querySelector('#annual-toggle');
+    const pricingPage = document.querySelector('.pricing-page');
+    const priceAmounts = document.querySelectorAll('.price-amount');
+    const billingNotes = document.querySelectorAll('.billing-note');
+    const billingStatus = document.querySelector('#billing-status');
+
+    function updateBillingPeriod() {
+      const isAnnual = annualToggle.checked;
+      const period = isAnnual ? 'annual' : 'monthly';
+
+      pricingPage.dataset.billing = period;
+
+      priceAmounts.forEach((price) => {
+        price.textContent = `$${price.dataset[period]}`;
+      });
+
+      billingNotes.forEach((note) => {
+        note.textContent = isAnnual ? 'Billed annually' : 'Billed monthly';
+      });
+
+      billingStatus.textContent = isAnnual
+        ? 'Showing annual pricing. Save 20%.'
+        : 'Showing monthly pricing.';
+    }
+
+    annualToggle.addEventListener('change', updateBillingPeriod);
+    updateBillingPeriod();
+  </script>
 </body>
 </html>
