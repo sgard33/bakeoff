@@ -54,6 +54,7 @@ const artifacts = [
   'bakeoff/run-meta.json',
   'bakeoff/run-start.json',
   'bakeoff/run.log',
+  'bakeoff/run.jsonl',
 ];
 
 // Keep all harnesses aligned with the shared marketing kit.
@@ -104,4 +105,4 @@ try {
 console.log('Bakeoff demo reset.');
 console.log('- Synced shared/ marketing kit into cursor/, claudecode/, codex/, and copilot/');
 console.log('- Restored starter index.html and style.css');
-console.log('- Cleared timing artifacts (run-meta/run-start/run.log) and report.html if present');
+console.log('- Cleared timing artifacts (run-meta/run-start/run.log/run.jsonl) and report.html if present');

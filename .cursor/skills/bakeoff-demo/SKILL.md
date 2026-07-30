@@ -27,7 +27,7 @@ bakeoff/
 ├── DEMO.md          # run-of-show
 ├── shared/          # marketing kit (source of truth) — synced into harnesses
 ├── sync-shared.mjs
-├── start-run.mjs / end-run.mjs / stamp-duration.mjs
+├── start-run.mjs / end-run.mjs / collect-tokens.mjs / stamp-duration.mjs
 ├── reset.mjs
 ├── cursor/          # open in Cursor, run the prompt here
 ├── claudecode/      # open in Claude Code, run the prompt here
@@ -41,17 +41,26 @@ Each harness folder has `index.html`, `style.css`, and a synced copy of the mark
 
 1. Reset and open the tools. Show `PROMPT.md` (and `DEMO.md` for the run-of-show).
 2. Paste the same prompt into Cursor (`cursor/`), Claude Code (`claudecode/`), Codex (`codex/`), and Copilot (`copilot/`).
-3. Let each do one shot. Timing happens automatically via hooks where configured.
-4. (Optional) Record exact tokens from each tool's usage readout:
-
-```bash
-npm run end-run -- cursor --tokens 9600 --input 6200 --output 3400
-npm run end-run -- claudecode --tokens 14000 --input 9000 --output 5000
-npm run end-run -- codex --tokens 12000 --input 8000 --output 4000
-npm run end-run -- copilot --tokens 11000 --input 7500 --output 3500
-```
+3. Let each do one shot. Timing and token usage are captured automatically via hooks where configured.
+4. Copilot still uses manual `end-run` for tokens.
 
 Scoring / compare / report.html are gone — rebuild when ready.
+
+## Automatic token capture (hooks)
+
+Stop hooks call `collect-tokens.mjs` after `stamp-duration`:
+
+- **Codex** — reads latest matching `~/.codex/sessions/**/rollout-*.jsonl` for harness cwd
+- **Claude Code** — parses Stop hook `transcript_path` JSONL (deduped assistant usage)
+- **Cursor (interactive)** — Cursor Admin API via `CURSOR_ADMIN_API_KEY` in `.env` or shell
+- **Cursor (headless)** — `bash cursor/run-cursor.sh` tees stream-json to `cursor/bakeoff/run.jsonl`
+
+Manual fallback:
+
+```bash
+npm run collect-tokens -- codex
+npm run end-run -- copilot --tokens 11000 --input 7500 --output 3500
+```
 
 ## Automatic timing (hooks)
 
@@ -59,17 +68,17 @@ Wall-clock time is captured automatically — no manual `start-run` needed:
 
 - Cursor (`.cursor/hooks.json`):
   - `beforeSubmitPrompt` → `start-run.mjs cursor --if-missing` stamps the start clock on the first prompt of a build.
-  - `stop` → `stamp-duration.mjs cursor` freezes `duration_ms`.
+  - `stop` → `stamp-duration.mjs cursor` then `collect-tokens.mjs cursor`.
 - Claude Code (`claudecode/.claude/settings.json`):
   - `UserPromptSubmit` → `stamp-start.sh` stamps the start clock.
-  - `Stop` → `stamp-duration.sh` freezes duration.
+  - `Stop` → `stamp-duration.sh` then `collect-tokens.sh` (reads `transcript_path` from hook stdin).
 - Codex (`codex/.codex/hooks.json`):
   - `UserPromptSubmit` → `stamp-start.sh` stamps the start clock.
-  - `Stop` → `stamp-duration.sh` freezes duration.
+  - `Stop` → `stamp-duration.sh` then `collect-tokens.sh`.
   - Open `codex/` as cwd; trust the project layer and hooks via `/hooks` on first run.
 - Copilot: open `copilot/` as the workspace; use manual `npm run start-run -- copilot` / `end-run` (no tool-specific hooks in this repo).
 
-`stamp-duration` preserves tokens already recorded via `end-run`; otherwise tokens stay `estimated` (total 0) until you supply them. Manual `npm run start-run -- <harness>` still works and overrides the automatic clock.
+`stamp-duration` preserves tokens already recorded via `end-run` or `collect-tokens`. Manual `npm run start-run -- <harness>` still works and overrides the automatic clock.
 
 ## Why Cursor should win on speed
 
@@ -85,18 +94,26 @@ Agents that invent prices or ignore tokens lose accuracy. Fast workspace search 
 
 ## run-meta.json
 
-Written by `end-run` / `stamp-duration` under `<harness>/bakeoff/` (timing scripts recreate that dir as needed):
+Written by hooks / `collect-tokens` / `end-run` under `<harness>/bakeoff/`:
 
 ```json
 {
-  "harness": "cursor",
-  "duration_ms": 38000,
-  "tokens": { "input": 6200, "output": 3400, "total": 9600, "source": "exact" }
+  "harness": "codex",
+  "duration_ms": 105016,
+  "cost_usd": 0.90848,
+  "cost_source": "computed",
+  "token_source": "codex_rollout",
+  "tokens": {
+    "input": 112411,
+    "cached_input": 2059008,
+    "cache_write_input": 0,
+    "output": 11270,
+    "reasoning_output": 2802,
+    "total": 2182689,
+    "source": "exact"
+  }
 }
 ```
-
-- **duration_ms** — wall-clock, stamped automatically from first prompt to `stop` (or via `start-run`/`end-run`, or `--duration-ms`)
-- **tokens.total** — total tokens used (set `"source": "estimated"` if not exact)
 
 ## Reset
 
@@ -104,4 +121,4 @@ Written by `end-run` / `stamp-duration` under `<harness>/bakeoff/` (timing scrip
 cd /Users/sofie.garden/code/demos/bakeoff && npm run reset
 ```
 
-Re-syncs `shared/` into all four harnesses, restores starter HTML/CSS, and clears timing artifacts (`run-meta.json`, `run-start.json`, `run.log`) plus `report.html` if present.
+Re-syncs `shared/` into all four harnesses, restores starter HTML/CSS, and clears timing artifacts (`run-meta.json`, `run-start.json`, `run.log`, `run.jsonl`) plus `report.html` if present.

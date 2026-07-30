@@ -8,8 +8,8 @@
     ],
     "stop": [
       {
-        "command": "node stamp-duration.mjs cursor",
-        "timeout": 30
+        "command": "node stamp-duration.mjs cursor && node collect-tokens.mjs cursor",
+        "timeout": 90
       }
     ]
   }

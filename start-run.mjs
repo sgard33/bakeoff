@@ -40,4 +40,4 @@ if (fs.existsSync(metaPath)) fs.unlinkSync(metaPath);
 
 console.log(`Started ${harness} run at ${startedAt}`);
 console.log(`Wrote ${path.join(harness, 'bakeoff', 'run-start.json')}`);
-console.log('When finished: npm run end-run -- ' + harness + ' --tokens <total> [--input N --output N]');
+console.log('When finished: npm run collect-tokens -- ' + harness + '  (or npm run end-run -- ' + harness + ' --tokens <total>)');

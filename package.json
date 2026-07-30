@@ -6,6 +6,7 @@
     "sync": "node sync-shared.mjs",
     "reset": "node reset.mjs",
     "start-run": "node start-run.mjs",
-    "end-run": "node end-run.mjs"
+    "end-run": "node end-run.mjs",
+    "collect-tokens": "node collect-tokens.mjs"
   }
 }
