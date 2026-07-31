@@ -32,8 +32,8 @@ const starterCss = `* {
 
 body {
   font-family: system-ui, -apple-system, sans-serif;
-  background: #f7f7f4;
-  color: #26251e;
+  background: #f5f7f6;
+  color: #1c2421;
   line-height: 1.5;
 }
 

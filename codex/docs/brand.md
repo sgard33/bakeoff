@@ -11,4 +11,4 @@
 - Cards / tiers: `components/card-snippets.html`
 - Toggle: `components/toggle-snippets.html`
 
-Accent orange (`--color-accent`) is for CTAs, the popular badge, and the featured tier only.
+Accent teal (`--color-accent`) is for CTAs, the popular badge, and the featured tier only.

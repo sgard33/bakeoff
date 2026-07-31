@@ -9,11 +9,11 @@
 
 | Token | Hex | Use |
 | --- | --- | --- |
-| `--color-bg` | `#f7f7f4` | Page background |
-| `--color-fg` | `#26251e` | Primary text |
-| `--color-accent` | `#f54e00` | CTAs, badges, emphasis |
-| `--color-card` | `#f2f1ed` | Cards / surfaces |
-| `--color-border` | `#e1e0db` | Borders |
+| `--color-bg` | `#f5f7f6` | Page background |
+| `--color-fg` | `#1c2421` | Primary text |
+| `--color-accent` | `#0f766e` | CTAs, badges, emphasis |
+| `--color-card` | `#eef1ef` | Cards / surfaces |
+| `--color-border` | `#d4dcd8` | Borders |
 
 ## Components
 
@@ -25,5 +25,5 @@
 ## Do / Don’t
 
 - Do reuse tokens from `tokens/brand.css`.
-- Don’t introduce a second orange or a dark theme for this page.
+- Don’t introduce a second teal or competing accent color on this page.
 - Don’t pull in Tailwind, Bootstrap, or icon fonts.
