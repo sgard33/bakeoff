@@ -56,7 +56,7 @@ try {
   fs.writeFileSync(metaPath, JSON.stringify(meta, null, 2) + '\n');
   fs.unlinkSync(startPath);
   console.log(
-    `Stamped ${harness} duration_ms=${durationMs}${hasTokens ? '' : ' (tokens still estimated — add with end-run)'}`
+    `Stamped ${harness} duration_ms=${durationMs}${hasTokens ? '' : ' (tokens pending — collect-tokens runs on stop hooks)'}`
   );
 } catch (error) {
   console.error(`stamp-duration failed for ${harness}: ${error.message}`);

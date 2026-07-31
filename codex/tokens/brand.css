@@ -3,12 +3,12 @@
  * Pricing and other pages should consume these CSS variables — do not hardcode brand colors.
  */
 :root {
-  --color-bg: #f7f7f4;
-  --color-fg: #26251e;
-  --color-fg-muted: rgba(38, 37, 30, 0.7);
-  --color-accent: #f54e00;
-  --color-card: #f2f1ed;
-  --color-border: #e1e0db;
+  --color-bg: #f5f7f6;
+  --color-fg: #1c2421;
+  --color-fg-muted: rgba(28, 36, 33, 0.7);
+  --color-accent: #0f766e;
+  --color-card: #eef1ef;
+  --color-border: #d4dcd8;
   --color-on-accent: #ffffff;
 
   --radius-sm: 8px;
@@ -23,7 +23,7 @@
   --space-6: 2rem;
   --space-8: 3rem;
 
-  --shadow-popular: 0 8px 24px rgba(245, 78, 0, 0.15);
+  --shadow-popular: 0 8px 24px rgba(15, 118, 110, 0.15);
   --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --breakpoint-mobile: 768px;
 }

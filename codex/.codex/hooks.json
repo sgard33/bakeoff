@@ -17,6 +17,11 @@
             "type": "command",
             "command": "bash .codex/hooks/stamp-duration.sh",
             "timeout": 30
+          },
+          {
+            "type": "command",
+            "command": "bash .codex/hooks/collect-tokens.sh",
+            "timeout": 60
           }
         ]
       }

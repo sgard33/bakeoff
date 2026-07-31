@@ -34,6 +34,7 @@ bakeoff/
 ├── reset.mjs          # reset starters + timing artifacts
 ├── start-run.mjs      # manual start clock
 ├── end-run.mjs        # record tokens + finalize timing
+├── collect-tokens.mjs # pull exact usage from CLI telemetry
 ├── stamp-duration.mjs # hook helper: freeze duration
 ├── cursor/            # Cursor working directory
 ├── claudecode/        # Claude Code working directory
@@ -72,22 +73,75 @@ npm run start-run -- copilot
 npm run end-run -- copilot --tokens <total> --input <N> --output <N>
 ```
 
-After each run, timing is written to `<harness>/bakeoff/run-meta.json`:
+After each run, timing and token usage are written to `<harness>/bakeoff/run-meta.json`:
 
 ```json
 {
   "harness": "cursor",
   "duration_ms": 38000,
-  "tokens": { "input": 6200, "output": 3400, "total": 9600, "source": "exact" }
+  "cost_usd": 0.42,
+  "cost_source": "admin_api",
+  "token_source": "cursor_admin_api",
+  "tokens": {
+    "input": 6200,
+    "cached_input": 12000,
+    "cache_write_input": 3400,
+    "output": 3400,
+    "reasoning_output": 0,
+    "total": 25000,
+    "source": "exact"
+  }
 }
 ```
 
-Optionally record exact token counts from each tool's usage readout:
+### Automatic token capture
+
+For Cursor, Claude Code, and Codex, hooks call `collect-tokens.mjs` when a session stops:
+
+| Harness | Source | Notes |
+|---------|--------|-------|
+| **Codex** | `~/.codex/sessions/**/rollout-*.jsonl` | Matches harness `cwd`, reads last `token_count` cumulative usage |
+| **Claude Code** | `~/.claude/projects/<slug>/*.jsonl` | Stop hook passes exact `transcript_path`; sums deduped assistant `message.usage` |
+| **Cursor (interactive)** | Cursor Admin API | Requires `CURSOR_ADMIN_API_KEY`; filters by run time window |
+| **Cursor (headless)** | `cursor/bakeoff/run.jsonl` | Via `cursor/run-cursor.sh` + `--output-format stream-json` |
+
+Setup for Cursor Admin API cost (interactive sessions):
+
+1. Create a **Team** API key in [cursor.com/dashboard](https://cursor.com/dashboard) → Settings → API Keys.
+2. Add it to a gitignored `.env` at the repo root:
 
 ```bash
-npm run end-run -- cursor --tokens 9600 --input 6200 --output 3400
+CURSOR_ADMIN_API_KEY=key_...
+```
+
+Or export it in your shell. The collector reads `.env` without overriding existing environment variables.
+
+Headless Cursor run (captures stream-json usage immediately):
+
+```bash
+bash cursor/run-cursor.sh
+```
+
+Manual collection after a run:
+
+```bash
+npm run collect-tokens -- codex
+npm run collect-tokens -- claudecode
+npm run collect-tokens -- cursor
+```
+
+If Cursor Admin API events are delayed (hourly aggregation), refresh cost later:
+
+```bash
+npm run collect-tokens -- cursor --refresh-cost
+```
+
+Manual override (Copilot or fallback):
+
+```bash
+npm run end-run -- cursor --tokens 9600 --input 6200 --cached-input 12000 --output 3400 --cost 0.42
 npm run end-run -- claudecode --tokens 14000 --input 9000 --output 5000
-npm run end-run -- codex --tokens 12000 --input 8000 --output 4000
+npm run end-run -- codex --tokens 2182689 --input 112411 --cached-input 2059008 --output 11270 --reasoning 2802
 npm run end-run -- copilot --tokens 11000 --input 7500 --output 3500
 ```
 
@@ -97,7 +151,8 @@ npm run end-run -- copilot --tokens 11000 --input 7500 --output 3500
 npm run sync       # sync shared/ into all harness folders
 npm run reset      # sync + restore starters + clear timing artifacts
 npm run start-run -- <cursor|claudecode|codex|copilot>
-npm run end-run -- <harness> --tokens <total> [--input N --output N]
+npm run end-run -- <harness> --tokens <total> [--input N --output N --cached-input N --cache-write N --reasoning N --cost N]
+npm run collect-tokens -- <cursor|claudecode|codex> [--transcript path] [--stream-json path] [--refresh-cost]
 ```
 
 ## Scoring
