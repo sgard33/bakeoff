@@ -1,187 +1,23 @@
-/*
- * Pricing page styles.
- * Reuses the marketing design system (tokens + component stylesheets) as the single
- * source of truth, then layers on the pricing/toggle-specific rules below.
- * All values consume brand tokens — no hardcoded brand colors.
- */
-@import 'tokens/brand.css';
-@import 'styles/base.css';
-@import 'styles/buttons.css';
-@import 'styles/cards.css';
-@import 'styles/layout.css';
-
-/* --- Header --- */
-.pricing-header h1 {
-  font-size: clamp(1.9rem, 4vw, 2.6rem);
-  line-height: 1.15;
-}
-
-.pricing-header .subtitle {
-  margin-top: var(--space-3);
-  font-size: 1.05rem;
-}
-
-/* --- Billing toggle --- */
-.billing-toggle {
-  margin-top: var(--space-6);
-}
-
-.billing-label {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-weight: 600;
-  color: var(--color-fg-muted);
-}
-
-/* Highlight the currently active period label. */
-.pricing-page:has(#annual-toggle:not(:checked)) .billing-label[data-period="monthly"],
-.pricing-page:has(#annual-toggle:checked) .billing-label[data-period="annual"] {
-  color: var(--color-fg);
-}
-
-.toggle-switch {
-  position: relative;
-  display: inline-flex;
-  flex: none;
-  width: 46px;
-  height: 26px;
-}
-
-/* Keep the native checkbox in place (not display:none) so it stays focusable and
-   keyboard-operable; visually hide it behind the slider. */
-.toggle-switch input {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+* {
+  box-sizing: border-box;
   margin: 0;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.toggle-slider {
-  position: absolute;
-  inset: 0;
-  background: var(--color-border);
-  border-radius: var(--radius-pill);
-  transition: background 0.15s ease;
-  pointer-events: none;
-}
-
-.toggle-slider::before {
-  content: "";
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 20px;
-  height: 20px;
-  background: var(--color-on-accent);
-  border-radius: var(--radius-pill);
-  box-shadow: 0 1px 2px rgba(28, 36, 33, 0.25);
-  transition: transform 0.15s ease;
-}
-
-.toggle-switch input:checked + .toggle-slider {
-  background: var(--color-accent);
-}
-
-.toggle-switch input:checked + .toggle-slider::before {
-  transform: translateX(20px);
-}
-
-/* Visible keyboard focus ring. */
-.toggle-switch input:focus-visible + .toggle-slider {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-}
-
-/* --- Cards --- */
-.pricing-grid {
-  margin-top: var(--space-8);
-}
-
-/* Lift the recommended plan so it reads as primary. */
-.pricing-card--popular {
-  transform: translateY(-8px);
-}
-
-.badge-popular {
-  align-self: flex-start;
-  margin-bottom: var(--space-3);
-}
-
-.tier-name {
-  font-size: 1.25rem;
-}
-
-.tier-price {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-1);
-  margin-top: var(--space-3);
-}
-
-.price-amount {
-  font-size: 2.5rem;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.price-period {
-  color: var(--color-fg-muted);
-  font-weight: 600;
-}
-
-/* "billed annually" note — only shown in the annual state. */
-.price-note {
-  margin-top: var(--space-1);
-  font-size: 0.8rem;
-  color: var(--color-fg-muted);
-  visibility: hidden;
-}
-
-.pricing-grid[data-billing="annual"] .price-note {
-  visibility: visible;
-}
-
-/* --- Features --- */
-.tier-features {
-  list-style: none;
-  margin: var(--space-5) 0 var(--space-6);
   padding: 0;
-  display: grid;
-  gap: var(--space-3);
 }
 
-.tier-features li {
-  position: relative;
-  padding-left: var(--space-6);
-  color: var(--color-fg);
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #f5f7f6;
+  color: #1c2421;
+  line-height: 1.5;
 }
 
-.tier-features li::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.15em;
-  width: 1rem;
-  height: 1rem;
-  border-radius: var(--radius-pill);
-  background: var(--color-accent);
-  /* Checkmark drawn with a CSS mask — no icon fonts. */
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E") center / 0.85rem no-repeat;
-          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E") center / 0.85rem no-repeat;
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem;
 }
 
-/* Push the CTA to the bottom so all cards align regardless of feature count. */
-.pricing-card .btn {
-  margin-top: auto;
-}
-
-/* --- Responsive --- */
-@media (max-width: 768px) {
-  .pricing-card--popular {
-    transform: none;
-  }
+.subtitle {
+  margin-top: 0.5rem;
+  opacity: 0.7;
 }

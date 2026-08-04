@@ -3,117 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pricing Plans</title>
+  <title>Pricing - Starter</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main class="pricing-page">
-    <header class="pricing-header">
-      <h1>Simple, transparent pricing</h1>
-      <p class="muted">Choose the plan that fits your team.</p>
-
-      <div class="billing-toggle" role="group" aria-label="Billing period">
-        <span class="billing-label billing-label--active" data-period="monthly">Monthly</span>
-        <label class="toggle-switch">
-          <input type="checkbox" id="annual-toggle" aria-label="Toggle annual billing">
-          <span class="toggle-slider"></span>
-        </label>
-        <span class="billing-label" data-period="annual">
-          Annual <span class="badge save-badge">Save 20%</span>
-        </span>
-      </div>
-    </header>
-
-    <div class="pricing-grid">
-      <article class="pricing-card card" data-tier="starter">
-        <h2 class="tier-name">Starter</h2>
-        <p class="tier-price">
-          <span class="price-amount" data-monthly="19" data-annual="15">$19</span>
-          <span class="price-period">/month</span>
-        </p>
-        <p class="tier-billing-note" aria-live="polite" hidden></p>
-        <ul class="tier-features">
-          <li>Up to 5 projects</li>
-          <li>Basic analytics</li>
-          <li>Email support</li>
-        </ul>
-        <button type="button" class="btn cta">Get Starter</button>
-      </article>
-
-      <article class="pricing-card card pricing-card--popular" data-tier="pro">
-        <span class="badge badge-popular">Most popular</span>
-        <h2 class="tier-name">Pro</h2>
-        <p class="tier-price">
-          <span class="price-amount" data-monthly="49" data-annual="39">$49</span>
-          <span class="price-period">/month</span>
-        </p>
-        <p class="tier-billing-note" aria-live="polite" hidden></p>
-        <ul class="tier-features">
-          <li>Unlimited projects</li>
-          <li>Advanced analytics</li>
-          <li>Priority support</li>
-          <li>Team collaboration</li>
-        </ul>
-        <button type="button" class="btn btn--primary cta">Get Pro</button>
-      </article>
-
-      <article class="pricing-card card" data-tier="enterprise">
-        <h2 class="tier-name">Enterprise</h2>
-        <p class="tier-price">
-          <span class="price-amount" data-monthly="99" data-annual="79">$99</span>
-          <span class="price-period">/month</span>
-        </p>
-        <p class="tier-billing-note" aria-live="polite" hidden></p>
-        <ul class="tier-features">
-          <li>Custom integrations</li>
-          <li>Dedicated account manager</li>
-          <li>SSO &amp; audit logs</li>
-          <li>SLA guarantee</li>
-        </ul>
-        <button type="button" class="btn cta">Contact sales</button>
-      </article>
-    </div>
+  <main class="container">
+    <h1>Pricing</h1>
+    <p class="subtitle">Update this page to match the task in PROMPT.md. Search the project for pricing content, brand tokens, and component patterns.</p>
   </main>
-
-  <script>
-    (function () {
-      var toggle = document.getElementById('annual-toggle');
-      var labels = document.querySelectorAll('.billing-label');
-      var amounts = document.querySelectorAll('.price-amount');
-      var notes = document.querySelectorAll('.tier-billing-note');
-
-      function formatPrice(value) {
-        return '$' + value;
-      }
-
-      function setBilling(isAnnual) {
-        labels.forEach(function (label) {
-          var active = label.dataset.period === (isAnnual ? 'annual' : 'monthly');
-          label.classList.toggle('billing-label--active', active);
-        });
-
-        amounts.forEach(function (el) {
-          var price = isAnnual ? el.dataset.annual : el.dataset.monthly;
-          el.textContent = formatPrice(price);
-        });
-
-        notes.forEach(function (note) {
-          if (isAnnual) {
-            note.textContent = 'Billed annually';
-            note.hidden = false;
-          } else {
-            note.textContent = '';
-            note.hidden = true;
-          }
-        });
-      }
-
-      toggle.addEventListener('change', function () {
-        setBilling(toggle.checked);
-      });
-
-      setBilling(toggle.checked);
-    })();
-  </script>
 </body>
 </html>
