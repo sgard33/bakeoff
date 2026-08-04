@@ -3,40 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Simple, transparent pricing for teams of every size.">
-  <title>Pricing plans | Acme</title>
+  <title>Pricing Plans</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <main class="pricing-page">
     <header class="pricing-header">
-      <p class="eyebrow">Pricing plans</p>
       <h1>Simple, transparent pricing</h1>
-      <p class="subtitle">Choose the plan that fits your team.</p>
+      <p class="muted">Choose the plan that fits your team.</p>
 
       <div class="billing-toggle" role="group" aria-label="Billing period">
-        <span class="billing-label" data-period="monthly">Monthly</span>
+        <span class="billing-label billing-label--active" data-period="monthly">Monthly</span>
         <label class="toggle-switch">
-          <input type="checkbox" id="annual-toggle" aria-label="Annual billing">
-          <span class="toggle-slider" aria-hidden="true"></span>
+          <input type="checkbox" id="annual-toggle" aria-label="Toggle annual billing">
+          <span class="toggle-slider"></span>
         </label>
         <span class="billing-label" data-period="annual">
           Annual <span class="badge save-badge">Save 20%</span>
         </span>
       </div>
-      <p id="billing-status" class="sr-only" aria-live="polite"></p>
     </header>
 
-    <section class="pricing-grid" aria-label="Pricing plans">
+    <div class="pricing-grid">
       <article class="pricing-card card" data-tier="starter">
-        <div class="tier-heading">
-          <h2 class="tier-name">Starter</h2>
-        </div>
+        <h2 class="tier-name">Starter</h2>
         <p class="tier-price">
           <span class="price-amount" data-monthly="19" data-annual="15">$19</span>
           <span class="price-period">/month</span>
         </p>
-        <p class="billing-detail">Billed monthly</p>
+        <p class="tier-billing-note" aria-live="polite" hidden></p>
         <ul class="tier-features">
           <li>Up to 5 projects</li>
           <li>Basic analytics</li>
@@ -46,15 +41,13 @@
       </article>
 
       <article class="pricing-card card pricing-card--popular" data-tier="pro">
-        <div class="tier-heading">
-          <h2 class="tier-name">Pro</h2>
-          <span class="badge badge-popular">Most popular</span>
-        </div>
+        <span class="badge badge-popular">Most popular</span>
+        <h2 class="tier-name">Pro</h2>
         <p class="tier-price">
           <span class="price-amount" data-monthly="49" data-annual="39">$49</span>
           <span class="price-period">/month</span>
         </p>
-        <p class="billing-detail">Billed monthly</p>
+        <p class="tier-billing-note" aria-live="polite" hidden></p>
         <ul class="tier-features">
           <li>Unlimited projects</li>
           <li>Advanced analytics</li>
@@ -65,14 +58,12 @@
       </article>
 
       <article class="pricing-card card" data-tier="enterprise">
-        <div class="tier-heading">
-          <h2 class="tier-name">Enterprise</h2>
-        </div>
+        <h2 class="tier-name">Enterprise</h2>
         <p class="tier-price">
           <span class="price-amount" data-monthly="99" data-annual="79">$99</span>
           <span class="price-period">/month</span>
         </p>
-        <p class="billing-detail">Billed monthly</p>
+        <p class="tier-billing-note" aria-live="polite" hidden></p>
         <ul class="tier-features">
           <li>Custom integrations</li>
           <li>Dedicated account manager</li>
@@ -81,36 +72,48 @@
         </ul>
         <button type="button" class="btn cta">Contact sales</button>
       </article>
-    </section>
+    </div>
   </main>
 
   <script>
-    const annualToggle = document.querySelector("#annual-toggle");
-    const priceAmounts = document.querySelectorAll(".price-amount");
-    const billingDetails = document.querySelectorAll(".billing-detail");
-    const billingStatus = document.querySelector("#billing-status");
+    (function () {
+      var toggle = document.getElementById('annual-toggle');
+      var labels = document.querySelectorAll('.billing-label');
+      var amounts = document.querySelectorAll('.price-amount');
+      var notes = document.querySelectorAll('.tier-billing-note');
 
-    function updatePricing() {
-      const isAnnual = annualToggle.checked;
-      const period = isAnnual ? "annual" : "monthly";
+      function formatPrice(value) {
+        return '$' + value;
+      }
 
-      document.documentElement.dataset.billing = period;
+      function setBilling(isAnnual) {
+        labels.forEach(function (label) {
+          var active = label.dataset.period === (isAnnual ? 'annual' : 'monthly');
+          label.classList.toggle('billing-label--active', active);
+        });
 
-      priceAmounts.forEach((price) => {
-        price.textContent = `$${price.dataset[period]}`;
+        amounts.forEach(function (el) {
+          var price = isAnnual ? el.dataset.annual : el.dataset.monthly;
+          el.textContent = formatPrice(price);
+        });
+
+        notes.forEach(function (note) {
+          if (isAnnual) {
+            note.textContent = 'Billed annually';
+            note.hidden = false;
+          } else {
+            note.textContent = '';
+            note.hidden = true;
+          }
+        });
+      }
+
+      toggle.addEventListener('change', function () {
+        setBilling(toggle.checked);
       });
 
-      billingDetails.forEach((detail) => {
-        detail.textContent = isAnnual ? "Billed annually" : "Billed monthly";
-      });
-
-      billingStatus.textContent = isAnnual
-        ? "Annual billing selected. Prices are shown per month and billed annually."
-        : "Monthly billing selected.";
-    }
-
-    annualToggle.addEventListener("change", updatePricing);
-    updatePricing();
+      setBilling(toggle.checked);
+    })();
   </script>
 </body>
 </html>

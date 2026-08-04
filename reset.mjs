@@ -52,6 +52,7 @@ body {
 // Timing scripts may recreate a minimal bakeoff/ for run-start/run-meta.
 const artifacts = [
   'bakeoff/run-meta.json',
+  'bakeoff/run-meta.last.json',
   'bakeoff/run-start.json',
   'bakeoff/run.log',
   'bakeoff/run.jsonl',
