@@ -20,6 +20,7 @@ import {
   collectCursorFromAdminApi,
   collectCursorFromStreamJson,
 } from './lib/collectors/cursor.mjs';
+import { agentLog } from './.cursor/hooks/debug-log.mjs';
 
 loadEnv();
 
@@ -143,6 +144,27 @@ async function collectForHarness(harnessName) {
       (fs.existsSync(streamJsonPath) &&
         (!startedAtMs || fs.statSync(streamJsonPath).mtimeMs >= startedAtMs - 60_000));
 
+    // Interactive hooks call `collect-tokens cursor` (no --stream-json) and must
+    // include non-headless Admin API events. Headless runs pass --stream-json and
+    // should filter to headless events if they fall back to the Admin API.
+    const headlessOnly = Boolean(readFlag('--stream-json'));
+    // #region agent log
+    agentLog({
+      hypothesisId: 'H5',
+      location: 'collect-tokens.mjs:cursor-branch',
+      message: 'cursor collect path',
+      data: {
+        startedAtMs,
+        endedAtMs,
+        useStreamJson: Boolean(useStreamJson),
+        streamJsonExists: fs.existsSync(streamJsonPath),
+        headlessOnly,
+        hasApiKey: Boolean(process.env.CURSOR_ADMIN_API_KEY),
+      },
+      runId: 'post-fix',
+    });
+    // #endregion
+
     if (useStreamJson && fs.existsSync(streamJsonPath)) {
       result = collectCursorFromStreamJson(streamJsonPath);
     }
@@ -151,13 +173,44 @@ async function collectForHarness(harnessName) {
         startMs: startedAtMs - 60_000,
         endMs: endedAtMs + 60_000,
         email: readFlag('--email'),
-        headlessOnly: !readFlag('--stream-json'),
+        headlessOnly,
       });
+      // #region agent log
+      agentLog({
+        hypothesisId: 'H5',
+        location: 'collect-tokens.mjs:admin-result',
+        message: 'cursor admin api result',
+        data: {
+          ok: Boolean(result?.ok),
+          reason: result?.reason || null,
+          source: result?.source || null,
+          eventCount: result?.event_count ?? null,
+          headlessOnly,
+        },
+        runId: 'post-fix',
+      });
+      // #endregion
     }
   }
 
   if (!result?.ok) {
-    console.error(result?.reason || `Could not collect tokens for ${harnessName}`);
+    const reason = result?.reason || `Could not collect tokens for ${harnessName}`;
+    // #region agent log
+    agentLog({
+      hypothesisId: 'H5',
+      location: 'collect-tokens.mjs:fail',
+      message: 'collect-tokens failed',
+      data: { harnessName, reason, startedAtMs },
+      runId: 'post-fix',
+    });
+    // #endregion
+    // Soft-exit for stop hooks when there is no active/completed timing window
+    // (e.g. a second stop after stamp already removed run-start).
+    if (!startedAtMs && !readFlag('--stream-json') && !readFlag('--transcript') && !readFlag('--json')) {
+      console.error(reason);
+      process.exit(0);
+    }
+    console.error(reason);
     process.exit(1);
   }
 

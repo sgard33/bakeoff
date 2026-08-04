@@ -8,7 +8,7 @@
     ],
     "stop": [
       {
-        "command": "node stamp-duration.mjs cursor && node collect-tokens.mjs cursor",
+        "command": "node .cursor/hooks/debug-stop.mjs && node stamp-duration.mjs cursor && node collect-tokens.mjs cursor",
         "timeout": 90
       }
     ]
