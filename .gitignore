@@ -6,6 +6,10 @@ node_modules/
 .env.*
 
 */bakeoff/run-*.json
+*/bakeoff/prompt-start.json
+*/bakeoff/usage-snapshot.json
+*/bakeoff/totals.json
+*/bakeoff/prompts.jsonl
 
 **/.claude/settings.local.json
 
