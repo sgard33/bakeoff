@@ -5,7 +5,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 BAKEOFF_ROOT="$(cd "$ROOT/.." && pwd)"
 
-# Stamp the start clock on the first prompt of a build; no-op if already running.
+# Stamp the per-prompt clock on every UserPromptSubmit.
 # Codex requires valid JSON on stdout for hook events — keep logs on stderr.
-node "$BAKEOFF_ROOT/start-run.mjs" codex --if-missing >&2 || true
+node "$BAKEOFF_ROOT/record-prompt.mjs" codex start >&2 || true
 printf '%s\n' '{"continue":true}'

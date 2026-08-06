@@ -15,10 +15,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/stamp-duration.sh"
-          },
-          {
-            "type": "command",
             "command": "bash .claude/hooks/collect-tokens.sh"
           }
         ]

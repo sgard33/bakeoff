@@ -2,7 +2,7 @@
 
 Same PM prompt, same model, one shot each in Cursor / Claude Code / Codex / Copilot.
 
-**Scoring was intentionally removed** so Sofie can rebuild it. Timing (start-run / end-run / stamp-duration) remains.
+**Scoring was intentionally removed** so Sofie can rebuild it. Per-prompt metrics (`record-prompt.mjs`) remain.
 
 ## Layout
 
@@ -11,8 +11,8 @@ bakeoff/
 ├── PROMPT.md          # paste into each tool
 ├── DEMO.md            # this run-of-show
 ├── shared/            # marketing kit (source of truth)
-├── sync-shared.mjs / reset.mjs / start-run.mjs / end-run.mjs / stamp-duration.mjs
-├── cursor/            # Cursor working directory
+├── sync-shared.mjs / reset.mjs / record-prompt.mjs / start-run.mjs / end-run.mjs
+├── cursor/            # Cursor working directory (open as Cursor project)
 ├── claudecode/        # Claude Code working directory
 ├── codex/             # Codex working directory
 └── copilot/           # Copilot / VS Code working directory
@@ -29,23 +29,21 @@ Each harness has starter `index.html` + `style.css` and a synced copy of the mar
    - Codex → `codex/`
    - Copilot (agent mode / workspace) → `copilot/`
 3. Paste `PROMPT.md` into each. One shot only.
-4. Optional exact tokens after each finishes:
+4. After each agent stops, check `<harness>/bakeoff/prompts.jsonl` and `totals.json` (hooks append automatically).
+   Optional manual refresh for delayed Cursor Admin API cost:
    ```bash
-   npm run end-run -- cursor --tokens <N> --input <N> --output <N>
-   npm run end-run -- claudecode --tokens <N> --input <N> --output <N>
-   npm run end-run -- codex --tokens <N> --input <N> --output <N>
-   npm run end-run -- copilot --tokens <N> --input <N> --output <N>
+   npm run prompt-log -- cursor refresh
    ```
 
-Manual timing (if hooks aren’t in play): `npm run start-run -- <harness>` before the prompt, `end-run` after.
+Manual fallback (if hooks aren’t in play): `npm run prompt-log -- <harness> start` before the prompt, `stop` after.
 
-## Automatic timing (hooks)
+## Automatic per-prompt metrics (hooks)
 
-Wall-clock time is captured automatically for Cursor, Claude Code, and Codex:
+Every user→agent turn is logged for Cursor, Claude Code, and Codex:
 
-- **Cursor** (`.cursor/hooks.json`): `beforeSubmitPrompt` → start; `stop` → duration.
-- **Claude Code** (`claudecode/.claude/settings.json`): `UserPromptSubmit` → start; `Stop` → duration.
-- **Codex** (`codex/.codex/hooks.json`): `UserPromptSubmit` → start; `Stop` → duration.
+- **Cursor** (`cursor/.cursor/hooks.json`): `beforeSubmitPrompt` → start; `stop` → stop + append to `prompts.jsonl`.
+- **Claude Code** (`claudecode/.claude/settings.json`): `UserPromptSubmit` → start; `Stop` → stop.
+- **Codex** (`codex/.codex/hooks.json`): `UserPromptSubmit` → start; `Stop` → stop.
 
 **Codex demo-day notes:** Open `codex/` as the project cwd (not the bakeoff root). Trust the project layer and review/trust hooks via `/hooks` on first run — project-local `.codex/` hooks load only when trusted.
 

@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeSubmitPrompt": [
+      {
+        "command": "node ../record-prompt.mjs cursor start"
+      }
+    ],
+    "stop": [
+      {
+        "command": "node ../record-prompt.mjs cursor stop",
+        "timeout": 90
+      }
+    ]
+  }
+}

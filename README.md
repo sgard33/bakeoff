@@ -14,7 +14,7 @@ Open each harness folder in its tool, paste the prompt from [`PROMPT.md`](PROMPT
 
 | Tool | Working directory |
 |------|-------------------|
-| Cursor | `cursor/` |
+| Cursor | `cursor/` (open as the Cursor project so harness hooks fire) |
 | Claude Code | `claudecode/` |
 | Codex | `codex/` |
 | Copilot | `copilot/` |
@@ -32,10 +32,9 @@ bakeoff/
 ├── shared/            # marketing kit (source of truth)
 ├── sync-shared.mjs    # sync shared/ into harness folders
 ├── reset.mjs          # reset starters + timing artifacts
-├── start-run.mjs      # manual start clock
-├── end-run.mjs        # record tokens + finalize timing
-├── collect-tokens.mjs # pull exact usage from CLI telemetry
-├── stamp-duration.mjs # hook helper: freeze duration
+├── record-prompt.mjs  # per-prompt metrics (start/stop/refresh)
+├── start-run.mjs / end-run.mjs / collect-tokens.mjs
+├── stamp-duration.mjs # legacy hook helper (superseded by record-prompt)
 ├── cursor/            # Cursor working directory
 ├── claudecode/        # Claude Code working directory
 ├── codex/             # Codex working directory
@@ -55,13 +54,13 @@ The prompt asks each agent to build a three-tier pricing page (Starter, Pro, Ent
 
 Agents that search the codebase and reuse existing patterns tend to finish faster with fewer tokens.
 
-## Timing
+## Per-prompt metrics
 
-Wall-clock time is captured automatically for Cursor, Claude Code, and Codex via lifecycle hooks:
+Every user→agent turn is logged automatically for Cursor, Claude Code, and Codex via `record-prompt.mjs`:
 
-- **Cursor** — `.cursor/hooks.json` (`beforeSubmitPrompt` → start, `stop` → duration)
-- **Claude Code** — `claudecode/.claude/settings.json` (`UserPromptSubmit` → start, `Stop` → duration)
-- **Codex** — `codex/.codex/hooks.json` (`UserPromptSubmit` → start, `Stop` → duration)
+- **Cursor** — `cursor/.cursor/hooks.json` (`beforeSubmitPrompt` → start, `stop` → stop)
+- **Claude Code** — `claudecode/.claude/settings.json` (`UserPromptSubmit` → start, `Stop` → stop)
+- **Codex** — `codex/.codex/hooks.json` (`UserPromptSubmit` → start, `Stop` → stop)
 
 **Codex notes:** Open `codex/` as the project cwd. Trust the project layer and approve hooks via `/hooks` on first run.
 
@@ -73,15 +72,40 @@ npm run start-run -- copilot
 npm run end-run -- copilot --tokens <total> --input <N> --output <N>
 ```
 
-After each run, timing and token usage are written to `<harness>/bakeoff/run-meta.json`:
+After each completed turn, hooks append one line to `<harness>/bakeoff/prompts.jsonl` and update running totals in `<harness>/bakeoff/totals.json`. `run-meta.json` mirrors `totals.json` for backward compatibility.
+
+Per-turn log line shape:
+
+```json
+{
+  "harness": "claudecode",
+  "prompt_index": 3,
+  "started_at": "2026-08-06T04:00:00.000Z",
+  "ended_at": "2026-08-06T04:00:42.100Z",
+  "duration_ms": 42100,
+  "tokens": {
+    "input": 1200,
+    "cached_input": 8000,
+    "cache_write_input": 400,
+    "output": 900,
+    "reasoning_output": 0,
+    "total": 10500,
+    "source": "exact"
+  },
+  "cost_usd": 0.12,
+  "cost_source": "reported",
+  "token_source": "claude_transcript"
+}
+```
+
+Running totals (`totals.json`):
 
 ```json
 {
   "harness": "cursor",
-  "duration_ms": 38000,
-  "cost_usd": 0.42,
-  "cost_source": "admin_api",
-  "token_source": "cursor_admin_api",
+  "prompt_count": 3,
+  "duration_ms": 118400,
+  "cost_usd": 0.41,
   "tokens": {
     "input": 6200,
     "cached_input": 12000,
@@ -90,19 +114,26 @@ After each run, timing and token usage are written to `<harness>/bakeoff/run-met
     "reasoning_output": 0,
     "total": 25000,
     "source": "exact"
-  }
+  },
+  "started_at": "2026-08-06T03:58:00.000Z",
+  "last_ended_at": "2026-08-06T04:02:00.000Z"
 }
 ```
 
-### Automatic token capture
+Each stop hook also prints turn + running totals to stderr:
 
-For Cursor, Claude Code, and Codex, hooks call `collect-tokens.mjs` when a session stops:
+```
+[claudecode] prompt #3  42.1s  in=1200 cache_r=8000 cache_w=400 out=900  $0.12
+[claudecode] totals     3 prompts  118.4s  tokens=84200  $0.41
+```
+
+### Token sources per harness
 
 | Harness | Source | Notes |
 |---------|--------|-------|
-| **Codex** | `~/.codex/sessions/**/rollout-*.jsonl` | Matches harness `cwd`, reads last `token_count` cumulative usage |
-| **Claude Code** | `~/.claude/projects/<slug>/*.jsonl` | Stop hook passes exact `transcript_path`; sums deduped assistant `message.usage` |
-| **Cursor (interactive)** | Cursor Admin API | Requires `CURSOR_ADMIN_API_KEY`; filters by run time window |
+| **Codex** | `~/.codex/sessions/**/rollout-*.jsonl` | Cumulative `token_count`; per-turn = delta vs `usage-snapshot.json` |
+| **Claude Code** | `~/.claude/projects/<slug>/*.jsonl` | Watermark on assistant message ids; cost from `total_cost_usd` delta when present |
+| **Cursor (interactive)** | Cursor Admin API | Per-turn window from `prompt-start.json`; requires `CURSOR_ADMIN_API_KEY` |
 | **Cursor (headless)** | `cursor/bakeoff/run.jsonl` | Via `cursor/run-cursor.sh` + `--output-format stream-json` |
 
 Setup for Cursor Admin API cost (interactive sessions):
@@ -133,7 +164,8 @@ npm run collect-tokens -- cursor
 If Cursor Admin API events are delayed (hourly aggregation), refresh cost later:
 
 ```bash
-npm run collect-tokens -- cursor --refresh-cost
+npm run prompt-log -- cursor refresh
+# or: npm run collect-tokens -- cursor --refresh-cost
 ```
 
 Manual override (Copilot or fallback):
@@ -152,6 +184,7 @@ npm run sync       # sync shared/ into all harness folders
 npm run reset      # sync + restore starters + clear timing artifacts
 npm run start-run -- <cursor|claudecode|codex|copilot>
 npm run end-run -- <harness> --tokens <total> [--input N --output N --cached-input N --cache-write N --reasoning N --cost N]
+npm run prompt-log -- <cursor|claudecode|codex> <start|stop|refresh> [--transcript path] [--stream-json path]
 npm run collect-tokens -- <cursor|claudecode|codex> [--transcript path] [--stream-json path] [--refresh-cost]
 ```
 
