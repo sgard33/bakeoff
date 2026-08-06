@@ -12,6 +12,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { spawnSync } from 'child_process';
 import { loadEnv } from './lib/env.mjs';
 import { computeCostUsd } from './lib/pricing.mjs';
 import { collectCodexFromStreamJson, collectCodexTokens } from './lib/collectors/codex.mjs';
@@ -88,6 +89,21 @@ function defaultStreamJsonPath(harnessName) {
 async function collectForHarness(harnessName) {
   const harnessDir = path.join(root, harnessName);
   const bakeoffDir = path.join(harnessDir, 'bakeoff');
+  const promptStartPath = path.join(bakeoffDir, 'prompt-start.json');
+
+  if (fs.existsSync(promptStartPath) && !refreshCostOnly) {
+    const stopArgs = ['record-prompt.mjs', harnessName, 'stop'];
+    const transcript = readFlag('--transcript');
+    const streamJson = readFlag('--stream-json');
+    const email = readFlag('--email');
+    if (transcript) stopArgs.push('--transcript', transcript);
+    if (streamJson) stopArgs.push('--stream-json', streamJson);
+    if (email) stopArgs.push('--email', email);
+
+    const result = spawnSync(process.execPath, stopArgs, { cwd: root, stdio: 'inherit' });
+    process.exit(result.status ?? 0);
+  }
+
   const { startedAtMs, endedAtMs } = runWindowMs(bakeoffDir);
 
   if (refreshCostOnly) {
@@ -95,27 +111,11 @@ async function collectForHarness(harnessName) {
       console.error('--refresh-cost is only supported for cursor');
       process.exit(1);
     }
-    if (!startedAtMs) {
-      console.error('No run timing found; start a run before refreshing cost');
-      process.exit(1);
-    }
-    const admin = await collectCursorFromAdminApi({
-      startMs: startedAtMs - 60_000,
-      endMs: endedAtMs + 60_000,
-      email: readFlag('--email'),
-      headlessOnly: false,
-    });
-    if (!admin.ok) {
-      console.error(admin.reason);
-      process.exit(1);
-    }
-    const merged = mergeRunMeta(harnessName, bakeoffDir, {
-      cost_usd: admin.cost_usd,
-      cost_source: 'admin_api',
-    });
-    console.log(`Refreshed ${harnessName} cost_usd=${admin.cost_usd} (${admin.event_count} events)`);
-    console.log(`Wrote ${path.join(harnessName, 'bakeoff', 'run-meta.json')}`);
-    return merged;
+    const refreshArgs = ['record-prompt.mjs', 'cursor', 'refresh'];
+    const email = readFlag('--email');
+    if (email) refreshArgs.push('--email', email);
+    const result = spawnSync(process.execPath, refreshArgs, { cwd: root, stdio: 'inherit' });
+    process.exit(result.status ?? 1);
   }
 
   const streamJsonPath = readFlag('--stream-json') || defaultStreamJsonPath(harnessName);

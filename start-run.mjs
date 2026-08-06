@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 /**
- * Start a timed bakeoff run.
- * Usage: node start-run.mjs <cursor|claudecode|codex|copilot>
+ * Start a timed bakeoff run (manual fallback).
+ * Delegates to record-prompt for cursor, claudecode, and codex.
+ *
+ * Usage: node start-run.mjs <cursor|claudecode|codex|copilot> [--if-missing]
  */
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { agentLog } from './.cursor/hooks/debug-log.mjs';
+import { spawnSync } from 'child_process';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const harness = process.argv[2];
@@ -17,37 +19,23 @@ if (!['cursor', 'claudecode', 'codex', 'copilot'].includes(harness)) {
   process.exit(ifMissing ? 0 : 1);
 }
 
-const bakeoffDir = path.join(root, harness, 'bakeoff');
-const startPath = path.join(bakeoffDir, 'run-start.json');
-const metaPath = path.join(bakeoffDir, 'run-meta.json');
-const lastMetaPath = path.join(bakeoffDir, 'run-meta.last.json');
-
-// --if-missing (used by hooks): only stamp the clock once per build. If a timer
-// is already running, leave it so the first prompt of a run sets the start time.
-if (ifMissing && fs.existsSync(startPath)) {
-  // #region agent log
-  agentLog({
-    hypothesisId: 'H4',
-    location: 'start-run.mjs:if-missing-skip',
-    message: 'start-run skipped existing timer',
-    data: { harness, ifMissing: true },
+if (['cursor', 'claudecode', 'codex'].includes(harness)) {
+  const promptStart = path.join(root, harness, 'bakeoff', 'prompt-start.json');
+  if (ifMissing && fs.existsSync(promptStart)) {
+    process.exit(0);
+  }
+  const result = spawnSync(process.execPath, ['record-prompt.mjs', harness, 'start'], {
+    cwd: root,
+    stdio: 'inherit',
   });
-  // #endregion
-  process.exit(0);
+  process.exit(result.status ?? 1);
 }
 
-// Hooks must not wipe a finished run on the next casual prompt. A completed
-// run-meta stays until `npm run reset` or an explicit `npm run start-run -- <harness>`.
-if (ifMissing && fs.existsSync(metaPath) && !fs.existsSync(startPath)) {
-  // #region agent log
-  agentLog({
-    hypothesisId: 'H4',
-    location: 'start-run.mjs:preserve-completed',
-    message: 'start-run skipped; completed run-meta preserved',
-    data: { harness, ifMissing: true, metaPath },
-    runId: 'post-fix',
-  });
-  // #endregion
+// Copilot manual timing (no CLI hooks).
+const bakeoffDir = path.join(root, harness, 'bakeoff');
+const startPath = path.join(bakeoffDir, 'run-start.json');
+
+if (ifMissing && fs.existsSync(startPath)) {
   process.exit(0);
 }
 
@@ -59,30 +47,7 @@ const payload = {
 };
 
 fs.mkdirSync(bakeoffDir, { recursive: true });
-fs.writeFileSync(startPath, JSON.stringify(payload, null, 2) + '\n');
-
-// Clear previous meta so a forgotten end-run cannot reuse stale timing.
-// Archive first so a later prompt cannot erase the last completed capture.
-const clearedMeta = fs.existsSync(metaPath);
-if (clearedMeta) {
-  try {
-    fs.copyFileSync(metaPath, lastMetaPath);
-  } catch {
-    // best-effort archive
-  }
-  fs.unlinkSync(metaPath);
-}
-
-// #region agent log
-agentLog({
-  hypothesisId: 'H4',
-  location: 'start-run.mjs:stamped',
-  message: 'start-run wrote run-start',
-  data: { harness, ifMissing, clearedMeta, archivedLast: clearedMeta, startedAt },
-  runId: 'post-fix',
-});
-// #endregion
+fs.writeFileSync(startPath, `${JSON.stringify(payload, null, 2)}\n`);
 
 console.log(`Started ${harness} run at ${startedAt}`);
 console.log(`Wrote ${path.join(harness, 'bakeoff', 'run-start.json')}`);
-console.log('When finished: npm run collect-tokens -- ' + harness + '  (or npm run end-run -- ' + harness + ' --tokens <total>)');

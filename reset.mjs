@@ -54,6 +54,10 @@ const artifacts = [
   'bakeoff/run-meta.json',
   'bakeoff/run-meta.last.json',
   'bakeoff/run-start.json',
+  'bakeoff/prompt-start.json',
+  'bakeoff/usage-snapshot.json',
+  'bakeoff/prompts.jsonl',
+  'bakeoff/totals.json',
   'bakeoff/run.log',
   'bakeoff/run.jsonl',
 ];
@@ -106,4 +110,4 @@ try {
 console.log('Bakeoff demo reset.');
 console.log('- Synced shared/ marketing kit into cursor/, claudecode/, codex/, and copilot/');
 console.log('- Restored starter index.html and style.css');
-console.log('- Cleared timing artifacts (run-meta/run-start/run.log/run.jsonl) and report.html if present');
+console.log('- Cleared timing artifacts (run-meta, prompts.jsonl, totals.json, run.log, run.jsonl) and report.html if present');
