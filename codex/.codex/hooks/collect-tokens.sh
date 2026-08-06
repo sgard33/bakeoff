@@ -5,4 +5,6 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 BAKEOFF_ROOT="$(cd "$ROOT/.." && pwd)"
 
-node "$BAKEOFF_ROOT/collect-tokens.mjs" codex || true
+# Codex Stop hooks require valid JSON on stdout — keep logs on stderr.
+node "$BAKEOFF_ROOT/collect-tokens.mjs" codex >&2 || true
+printf '%s\n' '{"continue":true}'
