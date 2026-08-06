@@ -21,8 +21,10 @@ if [ -n "$INPUT" ]; then
   ")"
 fi
 
+# Keep collector logs on stderr so Stop hooks only emit JSON on stdout.
 if [ -n "$TRANSCRIPT" ] && [ -f "$TRANSCRIPT" ]; then
-  node "$BAKEOFF_ROOT/collect-tokens.mjs" claudecode --transcript "$TRANSCRIPT" || true
+  node "$BAKEOFF_ROOT/collect-tokens.mjs" claudecode --transcript "$TRANSCRIPT" >&2 || true
 else
-  node "$BAKEOFF_ROOT/collect-tokens.mjs" claudecode || true
+  node "$BAKEOFF_ROOT/collect-tokens.mjs" claudecode >&2 || true
 fi
+printf '%s\n' '{"continue":true}'
