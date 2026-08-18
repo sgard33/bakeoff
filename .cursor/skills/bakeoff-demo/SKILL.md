@@ -1,9 +1,9 @@
 ---
 name: bakeoff-demo
 description: >-
-  Reset and run the two-turn interactive CLI bakeoff at code/demos/bakeoff.
-  Use when preparing, resetting, or troubleshooting Cursor vs Claude Code or
-  Cursor vs Codex races and their metrics report.
+  Start, reset, run, or troubleshoot the two-turn interactive CLI bakeoff at
+  code/demos/bakeoff. Starts metrics for Cursor vs Claude Code or Cursor vs
+  Codex and prompts for the pair when it is not specified.
 ---
 
 # Bakeoff Demo
@@ -42,12 +42,29 @@ Codex project hooks may require explicit trust on first use.
 
 ## Run
 
+Determine the race pair from the user's request:
+
+- Cursor vs Claude Code: `cursor claudecode`
+- Cursor vs Codex: `cursor codex`
+
+If the user did not specify a pair, use `AskQuestion` to ask them to choose
+between **Cursor vs Claude Code** and **Cursor vs Codex**. Do not choose for
+them.
+
+Run the commands yourself in the repository root; do not only tell the user
+what to run. When starting a fresh demo, reset first:
+
 ```bash
+cd /Users/sofie.garden/code/demos/bakeoff
 npm run reset
 npm run race -- cursor claudecode
 # Or:
 npm run race -- cursor codex
 ```
+
+Run exactly one `npm run race` command for the selected pair. Report that the
+race is ready, then tell the user to run the plan and build turns in both
+interactive CLIs.
 
 Run the plan and build turns in both interactive CLIs. Open
 `metrics/report.html`; it refreshes every eight seconds.
