@@ -3,13 +3,13 @@
   "hooks": {
     "beforeSubmitPrompt": [
       {
-        "command": "node ../record-prompt.mjs cursor start"
+        "command": "bash .cursor/hooks/start.sh"
       }
     ],
     "stop": [
       {
-        "command": "node ../record-prompt.mjs cursor stop",
-        "timeout": 90
+        "command": "bash .cursor/hooks/stop.sh",
+        "timeout": 15
       }
     ]
   }

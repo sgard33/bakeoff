@@ -1,116 +1,97 @@
 ---
 name: bakeoff-demo
 description: >-
-  Reset and run the one-shot bakeoff demo at code/demos/bakeoff across four
-  harnesses (Cursor, Claude Code, Codex, Copilot). Use when the user asks to
-  reset the bakeoff demo, sync the shared marketing kit, or set up the dual/quad
-  harness race track. Scoring was intentionally removed for Sofie to rebuild.
+  Reset and run the two-turn interactive CLI bakeoff at code/demos/bakeoff.
+  Use when preparing, resetting, or troubleshooting Cursor vs Claude Code or
+  Cursor vs Codex races and their metrics report.
 ---
 
 # Bakeoff Demo
 
-One-shot harness comparison: **same PM-style prompt, same model**, built once in Cursor, Claude Code, Codex, and Copilot.
-
 **Root:** `/Users/sofie.garden/code/demos/bakeoff`
 
-**Scoring intentionally removed** — Sofie will rebuild it. Per-prompt metrics helpers remain.
+The demo runs two interactive CLIs side by side. Each harness completes exactly
+two measured turns:
 
-## The point of the demo
+1. **Plan** — same model, plan mode.
+2. **Build** — agent mode; Cursor may switch to Auto Cost.
 
-Accuracy is expected to be roughly a **draw** — both produce a good page. Cursor typically wins on **speed** and **token efficiency** because the task requires searching a small marketing codebase (tokens, pricing JSON, component snippets).
+The first completed turn is labeled `plan`; the second is labeled `build`.
 
-## Layout
+## Setup
 
-```
-bakeoff/
-├── PROMPT.md        # PM-style prompt — paste into each tool
-├── DEMO.md          # run-of-show
-├── shared/          # marketing kit (source of truth) — synced into harnesses
-├── sync-shared.mjs
-├── record-prompt.mjs / start-run.mjs / end-run.mjs / collect-tokens.mjs
-├── reset.mjs
-├── cursor/          # open in Cursor as project root, run the prompt here
-├── claudecode/      # open in Claude Code, run the prompt here
-├── codex/           # open in Codex, run the prompt here
-└── copilot/         # open in Copilot / VS Code, run the prompt here
-```
+Read `README.md` and `DEMO.md` before changing or running the demo.
 
-Each harness folder has `index.html`, `style.css`, and a synced copy of the marketing kit (`content/`, `tokens/`, `components/`, …).
-
-## Demo flow
-
-1. Reset and open the tools. Show `PROMPT.md` (and `DEMO.md` for the run-of-show).
-2. Paste the same prompt into Cursor (`cursor/`), Claude Code (`claudecode/`), Codex (`codex/`), and Copilot (`copilot/`).
-3. Let each do one shot. Per-prompt timing and token usage are captured automatically via hooks where configured.
-4. Copilot still uses manual `end-run` for tokens.
-
-Scoring / compare / report.html are gone — rebuild when ready.
-
-## Per-prompt metrics (hooks)
-
-Hooks call `record-prompt.mjs` on every user→agent turn:
-
-- **Codex** — cumulative rollout delta vs `usage-snapshot.json`
-- **Claude Code** — transcript watermark on assistant message ids; `total_cost_usd` delta when present
-- **Cursor (interactive)** — Admin API per-turn window via `CURSOR_ADMIN_API_KEY` in `.env` or shell
-- **Cursor (headless)** — `bash cursor/run-cursor.sh` tees stream-json to `cursor/bakeoff/run.jsonl`
-
-Artifacts under `<harness>/bakeoff/`:
-
-| File | Role |
-|------|------|
-| `prompts.jsonl` | Append-only log — one object per completed turn |
-| `totals.json` | Running aggregates since last reset |
-| `run-meta.json` | Mirror of `totals.json` for backward compatibility |
-| `prompt-start.json` | Active turn clock (removed on stop) |
-| `usage-snapshot.json` | Cumulative watermark for delta collection |
-
-Manual fallback:
+Cursor interactive collection requires these gitignored root `.env` values:
 
 ```bash
-npm run prompt-log -- codex start
-npm run prompt-log -- codex stop
-npm run collect-tokens -- claudecode
-npm run end-run -- copilot --tokens 11000 --input 7500 --output 3500
+CURSOR_ADMIN_API_KEY=key_...
+CURSOR_ADMIN_EMAIL=you@example.com
 ```
 
-## Hook wiring
+`CURSOR_ADMIN_EMAIL` may be omitted when `git config user.email` matches the
+Cursor account.
 
-- Cursor (`cursor/.cursor/hooks.json`) — open **`cursor/`** as the Cursor project:
-  - `beforeSubmitPrompt` → `record-prompt.mjs cursor start`
-  - `stop` → `record-prompt.mjs cursor stop`
-- Claude Code (`claudecode/.claude/settings.json`):
-  - `UserPromptSubmit` → `record-prompt.mjs claudecode start`
-  - `Stop` → `record-prompt.mjs claudecode stop` (reads `transcript_path` from hook stdin)
-- Codex (`codex/.codex/hooks.json`):
-  - `UserPromptSubmit` → `record-prompt.mjs codex start`
-  - `Stop` → `record-prompt.mjs codex stop`
-  - Open `codex/` as cwd; trust the project layer and hooks via `/hooks` on first run.
-- Copilot: open `copilot/` as the workspace; use manual `npm run start-run -- copilot` / `end-run`.
+Open each CLI in its harness directory so project hooks load:
 
-Stop hooks print turn + running totals to stderr:
+- Cursor CLI: `cursor/`
+- Claude Code: `claudecode/`
+- Codex: `codex/`
 
-```
-[claudecode] prompt #3  42.1s  in=1200 cache_r=8000 cache_w=400 out=900  $0.12
-[claudecode] totals     3 prompts  118.4s  tokens=84200  $0.41
-```
+Codex project hooks may require explicit trust on first use.
 
-## Why Cursor should win on speed
-
-The prompt requires discovering:
-
-- `content/pricing.json` — canonical prices / features / CTAs
-- `content/changelog.json` — extra search target / release context
-- `tokens/brand.css` — CSS variables
-- `components/*` — class vocabulary (`card`, `tier`, `badge`, `billing-toggle`, `cta`)
-- `docs/brand-guidelines.md` / `docs/implementation-notes.md` — constraints
-
-Agents that invent prices or ignore tokens lose accuracy. Fast workspace search (Cursor) reduces wall-clock time and tokens vs manual exploration.
-
-## Reset
+## Run
 
 ```bash
-cd /Users/sofie.garden/code/demos/bakeoff && npm run reset
+npm run reset
+npm run race -- cursor claudecode
+# Or:
+npm run race -- cursor codex
 ```
 
-Re-syncs `shared/` into all four harnesses, restores starter HTML/CSS, and clears timing artifacts (`prompts.jsonl`, `totals.json`, `run-meta.json`, `prompt-start.json`, `usage-snapshot.json`, `run.log`, `run.jsonl`) and related bakeoff timing files.
+Run the plan and build turns in both interactive CLIs. Open
+`metrics/report.html`; it refreshes every eight seconds.
+
+## Capture sources
+
+- **Cursor:** hook timestamps plus user-filtered Cursor Admin API events.
+  Headline cost is undiscounted `tokenUsage.totalCents`, not billed
+  `chargedCents`. Collection happens in a detached process after the stop hook.
+- **Claude Code:** exact usage from assistant messages in the interactive
+  transcript. Cost is computed from the recorded model's list rates unless
+  manually overridden from `/usage`.
+- **Codex:** exact `last_token_usage` from the interactive rollout. Cost is
+  computed only when the model has a configured list-price profile.
+
+Do not run other Cursor agents during a measured Cursor turn. Admin events are
+filterable by user and time, but not by terminal session. The report shows event
+count and model names so overlap is visible.
+
+## Manual Claude cost
+
+```bash
+npm run set-cost -- claudecode plan <usd>
+npm run set-cost -- claudecode build <usd>
+```
+
+## Reset and history
+
+`npm run reset` first archives the active race and its standalone report under
+`metrics/history/<timestamp>-<pair>/`, then clears current metrics, syncs the
+shared marketing kit, and overwrites each harness `index.html` / `style.css`
+with starter templates.
+
+Do not reset if a built harness page still needs to be inspected.
+
+## Verification
+
+```bash
+npm run verify-metrics
+node --check metrics.mjs
+node --check reset.mjs
+node --check verify-metrics.mjs
+```
+
+The verifier checks hook configuration and executable scripts. With an active
+race, it also requires complete plan and build records with positive duration,
+tokens, and list cost for both harnesses.

@@ -1,73 +1,60 @@
 # Bakeoff demo — run of show
 
-Same PM prompt, same model, one shot each in Cursor / Claude Code / Codex / Copilot.
+Two interactive CLIs, two turns, one report. Run Cursor against Claude Code or Cursor against Codex; never all three at once.
 
-**Scoring was intentionally removed** so Sofie can rebuild it. Per-prompt metrics (`record-prompt.mjs`) remain.
+## Before the demo
 
-## Layout
+The root `.env` must contain:
 
-```
-bakeoff/
-├── PROMPT.md          # paste into each tool
-├── DEMO.md            # this run-of-show
-├── shared/            # marketing kit (source of truth)
-├── sync-shared.mjs / reset.mjs / record-prompt.mjs / start-run.mjs / end-run.mjs
-├── cursor/            # Cursor working directory (open as Cursor project)
-├── claudecode/        # Claude Code working directory
-├── codex/             # Codex working directory
-└── copilot/           # Copilot / VS Code working directory
+```bash
+CURSOR_ADMIN_API_KEY=key_...
+CURSOR_ADMIN_EMAIL=you@example.com
 ```
 
-Each harness has starter `index.html` + `style.css` and a synced copy of the marketing kit.
+`CURSOR_ADMIN_EMAIL` may be omitted when `git config user.email` matches the Cursor account.
 
-## Timed race (~8–12 min)
+Open `cursor/` in Cursor CLI and either `claudecode/` in Claude Code or `codex/` in Codex. Trust the project hooks when the CLI asks.
 
-1. `npm run reset` — syncs shared kit, restores starters, clears timing artifacts.
-2. Open four folders (or fewer if the machine is tight):
-   - Cursor → `cursor/`
-   - Claude Code → `claudecode/`
-   - Codex → `codex/`
-   - Copilot (agent mode / workspace) → `copilot/`
-3. Paste `PROMPT.md` into each. One shot only.
-4. After each agent stops, check `<harness>/bakeoff/prompts.jsonl` and `totals.json` (hooks append automatically).
-   Optional manual refresh for delayed Cursor Admin API cost:
-   ```bash
-   npm run prompt-log -- cursor refresh
-   ```
-
-Manual fallback (if hooks aren’t in play): `npm run prompt-log -- <harness> start` before the prompt, `stop` after.
-
-For non-interactive CLI runs, use `npm run run:cursor`, `npm run run:claude`, or `npm run run:codex`. These wrappers preserve native hooks and guarantee start/stop collection when a CLI version skips them.
-
-## Automatic per-prompt metrics (hooks)
-
-Every user→agent turn is logged for Cursor, Claude Code, and Codex:
-
-- **Cursor** (`cursor/.cursor/hooks.json`): `beforeSubmitPrompt` → start; `stop` → stop + append to `prompts.jsonl`.
-- **Claude Code** (`claudecode/.claude/settings.json`): `UserPromptSubmit` → start; `Stop` → stop.
-- **Codex** (`codex/.codex/hooks.json`): `UserPromptSubmit` → start; `Stop` → stop.
-
-**Codex demo-day notes:** Open `codex/` as the project cwd (not the bakeoff root). Trust the project layer and review/trust hooks via `/hooks` on first run — project-local `.codex/` hooks load only when trusted.
-
-Copilot still uses manual `npm run start-run -- copilot` / `end-run`.
-
-## Copilot notes
-
-Open `copilot/` as the Copilot / VS Code workspace for the timed one-shot — same `PROMPT.md` as the other harnesses. You can still briefly narrate Copilot’s Tab / inline strengths as a contrast.
-
-## Preview
-
-This bakeoff is static HTML — no app ports. Open each harness `index.html` in a browser, or `python3 -m http.server` from the harness folder if you prefer.
-
-## Commands cheat sheet
+## Cursor vs Claude Code
 
 ```bash
 cd /Users/sofie.garden/code/demos/bakeoff
 npm run reset
-npm run run:cursor
-npm run run:claude
-npm run run:codex
-npm run start-run -- copilot
-npm run verify-metrics -- cursor claudecode codex
-# scoring intentionally removed — rebuild when ready
+npm run race -- cursor claudecode
 ```
+
+1. Set both CLIs to Claude Opus 5 and plan mode.
+2. Paste the same planning prompt and submit both.
+3. Wait for both plans to finish. This is automatically recorded as **Plan**.
+4. Switch both to agent mode. Switch Cursor to Auto Cost; keep Claude Code on Opus 5.
+5. Ask both agents to build the plan. This is automatically recorded as **Build**.
+6. Open `metrics/report.html`. Cursor may briefly show “Syncing dashboard…” while its Admin API events arrive.
+7. Optionally replace Claude’s computed cost with the value shown by `/usage`:
+
+   ```bash
+   npm run set-cost -- claudecode plan <usd>
+   npm run set-cost -- claudecode build <usd>
+   ```
+
+8. Run `npm run verify-metrics`.
+
+## Cursor vs Codex
+
+Reset archives the prior report and restores the starter pages:
+
+```bash
+npm run reset
+npm run race -- cursor codex
+```
+
+Repeat the same plan and build turns. Open `metrics/report.html`, then run `npm run verify-metrics`.
+
+## What the report means
+
+- Cursor tokens and undiscounted list cost come from the same Admin API events used by the dashboard.
+- Claude Code tokens come from its interactive transcript. Cost is computed from list rates unless manually overridden from `/usage`.
+- Codex tokens come from its interactive rollout. Cost is computed only when the recorded model has a configured list-price profile.
+- Timing is wall-clock time from prompt submission until the CLI’s stop hook.
+- The first completed turn is always Plan; the second is always Build.
+
+Avoid other Cursor agent activity during a Cursor turn. Admin events do not identify a specific terminal session, so overlapping activity under the same email can contaminate the turn. The report shows models and event count to make overlap visible.

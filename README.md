@@ -8,18 +8,22 @@ Each tool gets an identical task — build a pricing page from a shared marketin
 
 ```bash
 npm run reset
+npm run race -- cursor claudecode
+# Or: npm run race -- cursor codex
 ```
 
-Open each harness folder in its tool, paste the prompt from [`PROMPT.md`](PROMPT.md), and let each agent run one shot:
+Open the two harness folders in their interactive CLIs. Each race is exactly two completed turns:
+
+1. Plan mode with the same model in both tools.
+2. Agent mode to build the plan. Cursor may switch to Auto Cost for this turn.
 
 | Tool | Working directory |
 |------|-------------------|
-| Cursor | `cursor/` (open as the Cursor project so harness hooks fire) |
+| Cursor CLI | `cursor/` |
 | Claude Code | `claudecode/` |
 | Codex | `codex/` |
-| Copilot | `copilot/` |
 
-Preview the result by opening each harness `index.html` in a browser.
+Hooks capture each turn automatically. Open [`metrics/report.html`](metrics/report.html) to watch the report; it refreshes every eight seconds.
 
 For a full run-of-show, see [`DEMO.md`](DEMO.md).
 
@@ -31,9 +35,9 @@ bakeoff/
 ├── DEMO.md            # run-of-show
 ├── shared/            # marketing kit (source of truth)
 ├── sync-shared.mjs    # sync shared/ into harness folders
-├── reset.mjs          # reset starters + timing artifacts
-├── record-prompt.mjs  # per-prompt metrics (start/stop/refresh)
-├── start-run.mjs / end-run.mjs / collect-tokens.mjs
+├── reset.mjs          # archive metrics + reset starters
+├── metrics.mjs        # hooks, collection, history, and report
+├── metrics/           # current race, history, report.html
 ├── cursor/            # Cursor working directory
 ├── claudecode/        # Claude Code working directory
 ├── codex/             # Codex working directory
@@ -53,154 +57,59 @@ The prompt asks each agent to build a three-tier pricing page (Starter, Pro, Ent
 
 Agents that search the codebase and reuse existing patterns tend to finish faster with fewer tokens.
 
-## Per-prompt metrics
+## Two-turn metrics
 
-Every user→agent turn is logged automatically for Cursor, Claude Code, and Codex via `record-prompt.mjs`:
+`metrics.mjs` records exactly two completed turns per harness:
 
-- **Cursor** — `cursor/.cursor/hooks.json` (`beforeSubmitPrompt` → start, `stop` → stop)
-- **Claude Code** — `claudecode/.claude/settings.json` (`UserPromptSubmit` → start, `Stop` → stop)
-- **Codex** — `codex/.codex/hooks.json` (`UserPromptSubmit` → start, `Stop` → stop)
+| Turn | Phase |
+|------|-------|
+| First | Plan |
+| Second | Build |
 
-**Codex notes:** Open `codex/` as the project cwd. Trust the project layer and approve hooks via `/hooks` on first run.
+The report shows input, output, cache-read, cache-write, total tokens, wall-clock duration, and undiscounted list cost for each phase and in total.
 
-For non-interactive CLI runs, use the wrappers so metrics are collected even when a CLI version skips native project hooks:
+### Sources
 
-```bash
-npm run run:cursor
-npm run run:claude
-npm run run:codex
-```
+| Harness | Tokens | List cost |
+|---------|--------|-----------|
+| Cursor CLI | Cursor Admin API events in the hook-stamped turn window | Admin API `tokenUsage.totalCents` |
+| Claude Code | Interactive transcript assistant usage | Computed from the actual model and token categories |
+| Codex | Interactive rollout `last_token_usage` | Computed when the model has a configured price profile |
 
-Pass a prompt after `--` to override `PROMPT.md`, for example `npm run run:claude -- "Reply with ok"`.
+Cursor collection runs in the background after the stop hook. The report initially says “Syncing dashboard…” and updates when the Admin API events stabilize.
 
-**Copilot** uses manual timing:
+### Cursor Admin API setup
 
-```bash
-npm run start-run -- copilot
-# ... run the prompt ...
-npm run end-run -- copilot --tokens <total> --input <N> --output <N>
-```
-
-After each completed turn, hooks append one line to `<harness>/bakeoff/prompts.jsonl` and update running totals in `<harness>/bakeoff/totals.json`. `run-meta.json` mirrors `totals.json` for backward compatibility.
-
-Per-turn log line shape:
-
-```json
-{
-  "harness": "claudecode",
-  "prompt_index": 3,
-  "started_at": "2026-08-06T04:00:00.000Z",
-  "ended_at": "2026-08-06T04:00:42.100Z",
-  "duration_ms": 42100,
-  "tokens": {
-    "input": 1200,
-    "cached_input": 8000,
-    "cache_write_input": 400,
-    "output": 900,
-    "reasoning_output": 0,
-    "total": 10500,
-    "source": "exact"
-  },
-  "cost_usd": 0.12,
-  "cost_source": "reported",
-  "token_source": "claude_transcript"
-}
-```
-
-Running totals (`totals.json`):
-
-```json
-{
-  "harness": "cursor",
-  "prompt_count": 3,
-  "duration_ms": 118400,
-  "cost_usd": 0.41,
-  "tokens": {
-    "input": 6200,
-    "cached_input": 12000,
-    "cache_write_input": 3400,
-    "output": 3400,
-    "reasoning_output": 0,
-    "total": 25000,
-    "source": "exact"
-  },
-  "started_at": "2026-08-06T03:58:00.000Z",
-  "last_ended_at": "2026-08-06T04:02:00.000Z"
-}
-```
-
-Each stop hook also prints turn + running totals to stderr:
-
-```
-[claudecode] prompt #3  42.1s  in=1200 cache_r=8000 cache_w=400 out=900  $0.12
-[claudecode] totals     3 prompts  118.4s  tokens=84200  $0.41
-```
-
-### Token sources per harness
-
-| Harness | Source | Notes |
-|---------|--------|-------|
-| **Codex** | `~/.codex/sessions/**/rollout-*.jsonl` | Per-turn `last_token_usage`; cumulative delta fallback |
-| **Claude Code** | `~/.claude/projects/<slug>/*.jsonl` | Watermark on assistant message ids; cost from `total_cost_usd` delta when present |
-| **Cursor (interactive)** | Cursor Admin API | Per-turn window from `prompt-start.json`; requires `CURSOR_ADMIN_API_KEY` |
-| **Cursor (headless)** | `cursor/bakeoff/run.jsonl` | Via `cursor/run-cursor.sh` + `--output-format stream-json` |
-
-Setup for Cursor Admin API cost (interactive sessions):
-
-1. Create a **Team** API key in [cursor.com/dashboard](https://cursor.com/dashboard) → Settings → API Keys.
-2. Add it to a gitignored `.env` at the repo root:
+Add both values to the gitignored root `.env`:
 
 ```bash
 CURSOR_ADMIN_API_KEY=key_...
+CURSOR_ADMIN_EMAIL=you@example.com
 ```
 
-Or export it in your shell. The collector reads `.env` without overriding existing environment variables.
+If `CURSOR_ADMIN_EMAIL` is omitted, the collector uses `git config user.email`. A user email is always required; collection fails closed rather than mixing team-wide usage into the race. Avoid other Cursor activity during a timed turn; the report displays the event count and models so possible overlap is visible.
 
-CLI runs (capture usage immediately):
+### Claude `/usage` override
+
+Interactive Claude transcripts do not persist the cost shown by `/usage`. The report computes list cost by default. To replace one turn with the displayed value:
 
 ```bash
-npm run run:cursor
-npm run run:claude
-npm run run:codex
+npm run set-cost -- claudecode plan 1.23
+npm run set-cost -- claudecode build 4.56
 ```
 
-Manual collection after a run:
+### Storage and reset
 
-```bash
-npm run collect-tokens -- codex
-npm run collect-tokens -- claudecode
-npm run collect-tokens -- cursor
-```
-
-If Cursor Admin API events are delayed (hourly aggregation), refresh cost later:
-
-```bash
-npm run prompt-log -- cursor refresh
-# or: npm run collect-tokens -- cursor --refresh-cost
-```
-
-Manual override (Copilot or fallback):
-
-```bash
-npm run end-run -- cursor --tokens 9600 --input 6200 --cached-input 12000 --output 3400 --cost 0.42
-npm run end-run -- claudecode --tokens 14000 --input 9000 --output 5000
-npm run end-run -- codex --tokens 2182689 --input 112411 --cached-input 2059008 --output 11270 --reasoning 2802
-npm run end-run -- copilot --tokens 11000 --input 7500 --output 3500
-```
+Current results live in `metrics/current/`. `npm run reset` archives an existing race to `metrics/history/<timestamp>-<pair>/`, including its standalone report, then clears current metrics and restores every harness starter.
 
 ## Commands
 
 ```bash
-npm run sync       # sync shared/ into all harness folders
-npm run reset      # sync + restore starters + clear timing artifacts
-npm run start-run -- <cursor|claudecode|codex|copilot>
-npm run end-run -- <harness> --tokens <total> [--input N --output N --cached-input N --cache-write N --reasoning N --cost N]
-npm run prompt-log -- <cursor|claudecode|codex> <start|stop|refresh> [--transcript path] [--stream-json path]
-npm run collect-tokens -- <cursor|claudecode|codex> [--transcript path] [--stream-json path] [--refresh-cost]
-npm run run:<cursor|claude|codex> -- [prompt]
-npm run verify-metrics -- cursor claudecode codex
+npm run sync
+npm run reset
+npm run race -- cursor claudecode
+npm run race -- cursor codex
+npm run report
+npm run set-cost -- claudecode <plan|build> <usd>
+npm run verify-metrics
 ```
-
-## Scoring
-
-Scoring and compare reporting were intentionally removed — timing helpers remain for rebuilding comparison tooling later.
