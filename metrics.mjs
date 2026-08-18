@@ -282,47 +282,50 @@ function codexRollouts() {
 
 function collectCodex(active, endedAtMs) {
   const expectedCwd = path.join(root, 'codex');
-  let chosen = null;
-  for (const filePath of codexRollouts()) {
-    const firstLine = fs.readFileSync(filePath, 'utf8').split('\n', 1)[0];
-    try {
-      const meta = JSON.parse(firstLine);
-      if (meta.type === 'session_meta' && meta.payload?.cwd === expectedCwd) {
-        chosen = filePath;
-        break;
+  // Multiple past sessions can share the codex/ cwd; scan the most recent ones
+  // first and use whichever holds token usage inside this turn's window.
+  const matching = codexRollouts()
+    .filter((filePath) => {
+      const firstLine = fs.readFileSync(filePath, 'utf8').split('\n', 1)[0];
+      try {
+        const meta = JSON.parse(firstLine);
+        return meta.type === 'session_meta' && meta.payload?.cwd === expectedCwd;
+      } catch {
+        return false;
       }
-    } catch {
-      // Ignore malformed or unrelated rollouts.
-    }
-  }
-  if (!chosen) throw new Error('Codex rollout not found');
+    })
+    .sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs);
+  if (matching.length === 0) throw new Error('Codex rollout not found');
 
-  let usage = null;
-  let model = null;
-  for (const line of fs.readFileSync(chosen, 'utf8').split('\n')) {
-    if (!line.trim()) continue;
-    let row;
-    try {
-      row = JSON.parse(line);
-    } catch {
-      continue;
+  for (const chosen of matching) {
+    let usage = null;
+    let model = null;
+    for (const line of fs.readFileSync(chosen, 'utf8').split('\n')) {
+      if (!line.trim()) continue;
+      let row;
+      try {
+        row = JSON.parse(line);
+      } catch {
+        continue;
+      }
+      if (!withinWindow(row.timestamp, active.started_at_ms, endedAtMs, 3000)) continue;
+      if (row.type === 'turn_context' && row.payload?.model) model = row.payload.model;
+      if (row.type === 'event_msg' && row.payload?.type === 'token_count') {
+        usage = row.payload.info?.last_token_usage || usage;
+      }
     }
-    if (!withinWindow(row.timestamp, active.started_at_ms, endedAtMs, 3000)) continue;
-    if (row.type === 'turn_context' && row.payload?.model) model = row.payload.model;
-    if (row.type === 'event_msg' && row.payload?.type === 'token_count') {
-      usage = row.payload.info?.last_token_usage || usage;
-    }
+    if (!usage) continue;
+    const tokens = normalizeCodexUsage(usage);
+    const item = { model: model || 'unknown', tokens };
+    return {
+      tokens,
+      models: [item.model],
+      token_source: 'codex_rollout',
+      source_detail: path.basename(chosen),
+      ...computedCost([item]),
+    };
   }
-  if (!usage) throw new Error(`No Codex usage found for this turn in ${chosen}`);
-  const tokens = normalizeCodexUsage(usage);
-  const item = { model: model || 'unknown', tokens };
-  return {
-    tokens,
-    models: [item.model],
-    token_source: 'codex_rollout',
-    source_detail: path.basename(chosen),
-    ...computedCost([item]),
-  };
+  throw new Error('No Codex usage found for this turn in any recent rollout');
 }
 
 async function fetchCursorEvents(startMs, endMs) {
