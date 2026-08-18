@@ -13,6 +13,10 @@ node_modules/
 */bakeoff/totals.json
 */bakeoff/prompts.jsonl
 
+metrics/current/
+metrics/history/
+metrics/report.html
+
 **/.claude/settings.local.json
 
 dist/

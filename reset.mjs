@@ -7,6 +7,18 @@ import { fileURLToPath } from 'url';
 const root = path.dirname(fileURLToPath(import.meta.url));
 const harnesses = ['cursor', 'claudecode', 'codex', 'copilot'];
 
+const archive = spawnSync(process.execPath, ['metrics.mjs', 'archive'], {
+  cwd: root,
+  encoding: 'utf8',
+  stdio: ['ignore', 'pipe', 'pipe'],
+});
+if (archive.stdout) process.stdout.write(archive.stdout);
+if (archive.stderr) process.stderr.write(archive.stderr);
+if (archive.status !== 0) {
+  console.error('Failed to archive current metrics');
+  process.exit(1);
+}
+
 const starterHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -49,7 +61,7 @@ body {
 }
 `;
 
-// Timing scripts may recreate a minimal bakeoff/ for run-start/run-meta.
+// Remove legacy per-harness metrics left by the previous capture system.
 const artifacts = [
   'bakeoff/run-meta.json',
   'bakeoff/run-meta.last.json',
@@ -100,4 +112,4 @@ for (const harness of harnesses) {
 console.log('Bakeoff demo reset.');
 console.log('- Synced shared/ marketing kit into cursor/, claudecode/, codex/, and copilot/');
 console.log('- Restored starter index.html and style.css');
-console.log('- Cleared timing artifacts (run-meta, prompts.jsonl, totals.json, run.log, run.jsonl)');
+console.log('- Archived the prior race and cleared current metrics');

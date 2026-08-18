@@ -5,13 +5,9 @@
   "scripts": {
     "sync": "node sync-shared.mjs",
     "reset": "node reset.mjs",
-    "start-run": "node start-run.mjs",
-    "end-run": "node end-run.mjs",
-    "collect-tokens": "node collect-tokens.mjs",
-    "prompt-log": "node record-prompt.mjs",
-    "run:cursor": "bash cursor/run-cursor.sh",
-    "run:claude": "bash claudecode/run-claude.sh",
-    "run:codex": "bash codex/run-codex.sh",
+    "race": "node metrics.mjs race",
+    "report": "node metrics.mjs report",
+    "set-cost": "node metrics.mjs set-cost",
     "verify-metrics": "node verify-metrics.mjs"
   }
 }
