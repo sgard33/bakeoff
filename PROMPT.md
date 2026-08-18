@@ -9,6 +9,5 @@ Couple of things:
 - Please keep it consistent with the rest of our marketing site — same colors, buttons, cards, that kind of thing. We already have all that defined, so search the project and lean on what's there instead of reinventing it.
 - It needs to look clean and modern and work properly on mobile.
 - Keep it accessible, and no third-party UI libraries please.
-- Stick to exactly what's described above — just the pricing page. Don't add extra sections or pages we didn't ask for (no FAQ, testimonials, feature-comparison tables, footers, etc.).
 
 You're just building the page itself here — `index.html` and `style.css` in this folder. Thanks!
