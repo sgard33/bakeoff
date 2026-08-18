@@ -6,6 +6,8 @@ node_modules/
 .env.*
 
 */bakeoff/run-*.json
+*/bakeoff/run.json
+*/bakeoff/run.jsonl
 */bakeoff/prompt-start.json
 */bakeoff/usage-snapshot.json
 */bakeoff/totals.json

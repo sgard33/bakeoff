@@ -14,7 +14,11 @@ import { loadEnv } from './lib/env.mjs';
 import { computeCostUsd } from './lib/pricing.mjs';
 import { subtractTokens } from './lib/token-delta.mjs';
 import { collectCodexCumulative, collectCodexFromStreamJson } from './lib/collectors/codex.mjs';
-import { collectClaudeTurnUsage } from './lib/collectors/claude.mjs';
+import {
+  collectClaudeFromJson,
+  collectClaudeTurnUsage,
+  collectClaudeWatermark,
+} from './lib/collectors/claude.mjs';
 import {
   collectCursorFromAdminApi,
   collectCursorFromStreamJson,
@@ -27,6 +31,7 @@ import {
   readJson,
   readTotals,
   readUsageSnapshot,
+  reconcileLastTurn,
   recordTurn,
   writeJson,
 } from './lib/prompt-log.mjs';
@@ -73,6 +78,23 @@ function startPrompt(harnessName) {
   const paths = pathsForHarness(root, harnessName);
   const totals = readTotals(paths.totals);
   const promptIndex = nextPromptIndex(totals);
+
+  if (harnessName === 'claudecode') {
+    const existing = readUsageSnapshot(paths.usageSnapshot);
+    const watermark = collectClaudeWatermark({
+      harnessDir: path.join(root, harnessName),
+    });
+    if (watermark.ok) {
+      writeJson(paths.usageSnapshot, {
+        ...existing,
+        tokens: watermark.tokens,
+        seen_message_ids: watermark.seen_message_ids,
+        reported_cost_usd: watermark.reported_cost_usd,
+        transcript_path: watermark.transcript_path,
+      });
+    }
+  }
+
   const startedAt = new Date().toISOString();
   const payload = {
     harness: harnessName,
@@ -92,6 +114,27 @@ async function collectTurnTokens(harnessName, paths, promptStart, snapshot) {
   const streamJsonPath = readFlag('--stream-json') || paths.streamJson;
 
   if (harnessName === 'claudecode') {
+    const resultJsonPath = readFlag('--result-json');
+    if (resultJsonPath && fs.existsSync(resultJsonPath)) {
+      const result = collectClaudeFromJson(resultJsonPath);
+      if (!result.ok) return result;
+      const { cost_usd, cost_source } = resolveCost(
+        result.tokens,
+        harnessName,
+        result.reported_cost_usd,
+        null,
+        null
+      );
+      return {
+        ok: true,
+        tokens: result.tokens,
+        token_source: result.source,
+        cost_usd,
+        cost_source,
+        snapshotPatch: snapshot,
+      };
+    }
+
     const result = collectClaudeTurnUsage({
       harnessDir,
       transcriptPath: readFlag('--transcript'),
@@ -132,7 +175,7 @@ async function collectTurnTokens(harnessName, paths, promptStart, snapshot) {
     }
     if (!cumulative?.ok) return cumulative;
 
-    const tokens = subtractTokens(cumulative.tokens, snapshot.tokens);
+    const tokens = cumulative.turn_tokens || subtractTokens(cumulative.tokens, snapshot.tokens);
     const { cost_usd, cost_source } = resolveCost(tokens, harnessName, null, null, null);
 
     return {
@@ -176,20 +219,17 @@ async function collectTurnTokens(harnessName, paths, promptStart, snapshot) {
     });
     if (!admin.ok) return admin;
 
-    const tokens = subtractTokens(admin.tokens, snapshot.tokens);
-    const priorAdminCost = snapshot.admin_cost_usd ?? 0;
-    const adminDelta = Math.max(0, (admin.cost_usd || 0) - priorAdminCost);
     const { cost_usd, cost_source } = resolveCost(
-      tokens,
+      admin.tokens,
       harnessName,
       null,
       null,
-      adminDelta > 0 ? adminDelta : admin.cost_usd
+      admin.cost_usd
     );
 
     return {
       ok: true,
-      tokens,
+      tokens: admin.tokens,
       token_source: admin.source,
       cost_usd,
       cost_source,
@@ -331,10 +371,38 @@ async function refreshCursorCost() {
   console.error(`Refreshed cursor cost_usd=${admin.cost_usd} (${admin.event_count} events)`);
 }
 
+function reconcileClaudeResult() {
+  const resultJsonPath = readFlag('--result-json');
+  if (!resultJsonPath || !fs.existsSync(resultJsonPath)) {
+    throw new Error('Claude reconciliation requires --result-json path');
+  }
+
+  const result = collectClaudeFromJson(resultJsonPath);
+  if (!result.ok) throw new Error(result.reason);
+  const { cost_usd, cost_source } = resolveCost(
+    result.tokens,
+    'claudecode',
+    result.reported_cost_usd,
+    null,
+    null
+  );
+  const turn = reconcileLastTurn({
+    root,
+    harness: 'claudecode',
+    patch: {
+      tokens: result.tokens,
+      token_source: result.source,
+      cost_usd,
+      cost_source,
+    },
+  });
+  console.error(`Reconciled claudecode prompt #${turn.prompt_index} from CLI result JSON`);
+}
+
 async function main() {
   if (!SUPPORTED.includes(harness)) {
     console.error(
-      'Usage: node record-prompt.mjs <cursor|claudecode|codex|copilot> <start|stop|refresh> [--transcript path] [--stream-json path] [--email email]'
+      'Usage: node record-prompt.mjs <cursor|claudecode|codex|copilot> <start|stop|refresh> [--transcript path] [--stream-json path] [--result-json path] [--email email]'
     );
     process.exit(1);
   }
@@ -358,8 +426,17 @@ async function main() {
     process.exit(0);
   }
 
+  if (action === 'reconcile') {
+    if (harness !== 'claudecode') {
+      console.error('reconcile is only supported for claudecode');
+      process.exit(1);
+    }
+    reconcileClaudeResult();
+    process.exit(0);
+  }
+
   console.error(
-    'Usage: node record-prompt.mjs <cursor|claudecode|codex|copilot> <start|stop|refresh> [--transcript path] [--stream-json path] [--email email]'
+    'Usage: node record-prompt.mjs <cursor|claudecode|codex|copilot> <start|stop|refresh> [--transcript path] [--stream-json path] [--result-json path] [--email email]'
   );
   process.exit(1);
 }
