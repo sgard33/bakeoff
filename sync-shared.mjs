@@ -18,9 +18,9 @@ const DEST_DIRS = [
   'docs',
   'reference',
   'styles',
-  'blog',
-  'dashboard',
 ];
+
+const DROPPED_DIRS = ['blog', 'dashboard'];
 
 function copyDir(src, dest) {
   fs.mkdirSync(dest, { recursive: true });
@@ -52,7 +52,13 @@ for (const harness of harnesses) {
     }
     copyDir(src, dest);
   }
-  // Top-level docs/README in shared stays under docs/
+  // Drop kit dirs that are no longer in shared/ so harness copies stay in lockstep.
+  for (const dir of DROPPED_DIRS) {
+    const dest = path.join(harnessRoot, dir);
+    if (fs.existsSync(dest)) {
+      fs.rmSync(dest, { recursive: true, force: true });
+    }
+  }
 }
 
 console.log('Synced shared/ into cursor/, claudecode/, codex/, and copilot/');
