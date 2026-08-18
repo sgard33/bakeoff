@@ -8,6 +8,10 @@
     "start-run": "node start-run.mjs",
     "end-run": "node end-run.mjs",
     "collect-tokens": "node collect-tokens.mjs",
-    "prompt-log": "node record-prompt.mjs"
+    "prompt-log": "node record-prompt.mjs",
+    "run:cursor": "bash cursor/run-cursor.sh",
+    "run:claude": "bash claudecode/run-claude.sh",
+    "run:codex": "bash codex/run-codex.sh",
+    "verify-metrics": "node verify-metrics.mjs"
   }
 }

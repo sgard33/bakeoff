@@ -37,6 +37,8 @@ Each harness has starter `index.html` + `style.css` and a synced copy of the mar
 
 Manual fallback (if hooks aren’t in play): `npm run prompt-log -- <harness> start` before the prompt, `stop` after.
 
+For non-interactive CLI runs, use `npm run run:cursor`, `npm run run:claude`, or `npm run run:codex`. These wrappers preserve native hooks and guarantee start/stop collection when a CLI version skips them.
+
 ## Automatic per-prompt metrics (hooks)
 
 Every user→agent turn is logged for Cursor, Claude Code, and Codex:
@@ -62,9 +64,10 @@ This bakeoff is static HTML — no app ports. Open each harness `index.html` in 
 ```bash
 cd /Users/sofie.garden/code/demos/bakeoff
 npm run reset
-npm run start-run -- cursor      # optional if hooks handle timing
-npm run start-run -- claudecode  # optional if hooks handle timing
-npm run start-run -- codex       # optional if hooks handle timing
+npm run run:cursor
+npm run run:claude
+npm run run:codex
 npm run start-run -- copilot
+npm run verify-metrics -- cursor claudecode codex
 # scoring intentionally removed — rebuild when ready
 ```

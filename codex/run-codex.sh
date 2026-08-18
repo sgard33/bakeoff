@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Headless Cursor bakeoff run: stream-json capture + token collection.
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 BAKEOFF_ROOT="$(cd "$ROOT/.." && pwd)"
 PROMPT_FILE="$BAKEOFF_ROOT/PROMPT.md"
@@ -17,18 +16,20 @@ else
 fi
 
 mkdir -p "$ROOT/bakeoff"
-node "$BAKEOFF_ROOT/start-run.mjs" cursor --if-missing
+node "$BAKEOFF_ROOT/start-run.mjs" codex --if-missing
 
 set +e
 (
   cd "$ROOT"
-  cursor-agent -p --output-format stream-json "$PROMPT"
+  codex exec --json "$PROMPT"
 ) | tee "$LOG"
 STATUS=${PIPESTATUS[0]}
 set -e
 
+# Native CLI hooks normally remove this stamp. This fallback guarantees
+# collection when project hooks have not yet been trusted.
 if [ -f "$ROOT/bakeoff/prompt-start.json" ]; then
-  node "$BAKEOFF_ROOT/record-prompt.mjs" cursor stop --stream-json "$LOG"
+  node "$BAKEOFF_ROOT/record-prompt.mjs" codex stop --stream-json "$LOG"
 fi
 
 exit "$STATUS"

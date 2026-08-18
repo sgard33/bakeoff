@@ -64,6 +64,16 @@ Every user→agent turn is logged automatically for Cursor, Claude Code, and Cod
 
 **Codex notes:** Open `codex/` as the project cwd. Trust the project layer and approve hooks via `/hooks` on first run.
 
+For non-interactive CLI runs, use the wrappers so metrics are collected even when a CLI version skips native project hooks:
+
+```bash
+npm run run:cursor
+npm run run:claude
+npm run run:codex
+```
+
+Pass a prompt after `--` to override `PROMPT.md`, for example `npm run run:claude -- "Reply with ok"`.
+
 **Copilot** uses manual timing:
 
 ```bash
@@ -131,7 +141,7 @@ Each stop hook also prints turn + running totals to stderr:
 
 | Harness | Source | Notes |
 |---------|--------|-------|
-| **Codex** | `~/.codex/sessions/**/rollout-*.jsonl` | Cumulative `token_count`; per-turn = delta vs `usage-snapshot.json` |
+| **Codex** | `~/.codex/sessions/**/rollout-*.jsonl` | Per-turn `last_token_usage`; cumulative delta fallback |
 | **Claude Code** | `~/.claude/projects/<slug>/*.jsonl` | Watermark on assistant message ids; cost from `total_cost_usd` delta when present |
 | **Cursor (interactive)** | Cursor Admin API | Per-turn window from `prompt-start.json`; requires `CURSOR_ADMIN_API_KEY` |
 | **Cursor (headless)** | `cursor/bakeoff/run.jsonl` | Via `cursor/run-cursor.sh` + `--output-format stream-json` |
@@ -147,10 +157,12 @@ CURSOR_ADMIN_API_KEY=key_...
 
 Or export it in your shell. The collector reads `.env` without overriding existing environment variables.
 
-Headless Cursor run (captures stream-json usage immediately):
+CLI runs (capture usage immediately):
 
 ```bash
-bash cursor/run-cursor.sh
+npm run run:cursor
+npm run run:claude
+npm run run:codex
 ```
 
 Manual collection after a run:
@@ -186,6 +198,8 @@ npm run start-run -- <cursor|claudecode|codex|copilot>
 npm run end-run -- <harness> --tokens <total> [--input N --output N --cached-input N --cache-write N --reasoning N --cost N]
 npm run prompt-log -- <cursor|claudecode|codex> <start|stop|refresh> [--transcript path] [--stream-json path]
 npm run collect-tokens -- <cursor|claudecode|codex> [--transcript path] [--stream-json path] [--refresh-cost]
+npm run run:<cursor|claude|codex> -- [prompt]
+npm run verify-metrics -- cursor claudecode codex
 ```
 
 ## Scoring
