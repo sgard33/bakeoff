@@ -34,7 +34,6 @@ bakeoff/
 ├── reset.mjs          # reset starters + timing artifacts
 ├── record-prompt.mjs  # per-prompt metrics (start/stop/refresh)
 ├── start-run.mjs / end-run.mjs / collect-tokens.mjs
-├── stamp-duration.mjs # legacy hook helper (superseded by record-prompt)
 ├── cursor/            # Cursor working directory
 ├── claudecode/        # Claude Code working directory
 ├── codex/             # Codex working directory

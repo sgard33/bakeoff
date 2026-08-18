@@ -97,17 +97,7 @@ for (const harness of harnesses) {
   }
 }
 
-const reportPath = path.join(root, 'report.html');
-if (fs.existsSync(reportPath)) fs.unlinkSync(reportPath);
-
-const hookStamp = path.join(root, '.cursor', 'hooks', '.last-score');
-try {
-  if (fs.existsSync(hookStamp)) fs.unlinkSync(hookStamp);
-} catch {
-  // Ignore sandbox / permission errors on Cursor-managed hook stamps.
-}
-
 console.log('Bakeoff demo reset.');
 console.log('- Synced shared/ marketing kit into cursor/, claudecode/, codex/, and copilot/');
 console.log('- Restored starter index.html and style.css');
-console.log('- Cleared timing artifacts (run-meta, prompts.jsonl, totals.json, run.log, run.jsonl) and report.html if present');
+console.log('- Cleared timing artifacts (run-meta, prompts.jsonl, totals.json, run.log, run.jsonl)');

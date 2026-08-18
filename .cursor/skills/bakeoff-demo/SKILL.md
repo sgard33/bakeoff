@@ -103,7 +103,7 @@ The prompt requires discovering:
 - `content/changelog.json` — extra search target / release context
 - `tokens/brand.css` — CSS variables
 - `components/*` — class vocabulary (`card`, `tier`, `badge`, `billing-toggle`, `cta`)
-- `docs/brand.md` / `docs/implementation-notes.md` — constraints
+- `docs/brand-guidelines.md` / `docs/implementation-notes.md` — constraints
 
 Agents that invent prices or ignore tokens lose accuracy. Fast workspace search (Cursor) reduces wall-clock time and tokens vs manual exploration.
 
@@ -113,4 +113,4 @@ Agents that invent prices or ignore tokens lose accuracy. Fast workspace search 
 cd /Users/sofie.garden/code/demos/bakeoff && npm run reset
 ```
 
-Re-syncs `shared/` into all four harnesses, restores starter HTML/CSS, and clears timing artifacts (`prompts.jsonl`, `totals.json`, `run-meta.json`, `prompt-start.json`, `usage-snapshot.json`, `run.log`, `run.jsonl`) plus `report.html` if present.
+Re-syncs `shared/` into all four harnesses, restores starter HTML/CSS, and clears timing artifacts (`prompts.jsonl`, `totals.json`, `run-meta.json`, `prompt-start.json`, `usage-snapshot.json`, `run.log`, `run.jsonl`) and related bakeoff timing files.

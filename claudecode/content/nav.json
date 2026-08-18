@@ -1,9 +1,0 @@
-{
-  "product_name": "Acme",
-  "links": [
-    { "label": "Product", "href": "reference/landing.html" },
-    { "label": "Pricing", "href": "index.html" },
-    { "label": "About", "href": "reference/about.html" },
-    { "label": "Blog", "href": "blog/post-launch.md" }
-  ]
-}
