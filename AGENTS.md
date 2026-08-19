@@ -15,8 +15,7 @@ scripts use only built-in modules. Nothing needs to be installed. Requires Node
 
 ### Commands
 Use the npm scripts defined in `package.json` (documented in `README.md`):
-`sync`, `reset`, `race`, `report`, `set-cost`, `verify-metrics`. Do not duplicate
-their usage here — read `README.md` / `DEMO.md`.
+`sync` and `reset`. Read `README.md` / `DEMO.md` for usage.
 
 ### Lint / test / build
 None are configured (no ESLint, no test runner, no bundler). For a quick sanity check
@@ -31,10 +30,5 @@ pull prices/features from `content/pricing.json` — never hardcode pricing.
 
 ### Gotchas
 - `npm run reset` overwrites every harness `index.html` / `style.css` with the starter
- templates hardcoded in `reset.mjs`. It archives the active metrics race first. Do
- **not** run it if you want to keep a page you built in a harness.
-- Generated race data and reports under `metrics/` are gitignored.
-- Cursor interactive metrics require `CURSOR_ADMIN_API_KEY` in the root `.env`.
- `CURSOR_ADMIN_EMAIL` is optional when `git config user.email` matches the Cursor
- account. Claude Code and Codex collectors read local CLI telemetry (`~/.claude`,
- `~/.codex`) that will not exist in a fresh cloud VM.
+ templates hardcoded in `reset.mjs`. Do **not** run it if you want to keep a page
+ you built in a harness.

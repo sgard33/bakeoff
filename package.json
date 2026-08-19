@@ -4,10 +4,6 @@
   "type": "module",
   "scripts": {
     "sync": "node sync-shared.mjs",
-    "reset": "node reset.mjs",
-    "race": "node metrics.mjs race",
-    "report": "node metrics.mjs report",
-    "set-cost": "node metrics.mjs set-cost",
-    "verify-metrics": "node verify-metrics.mjs"
+    "reset": "node reset.mjs"
   }
 }

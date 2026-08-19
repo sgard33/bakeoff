@@ -5,18 +5,6 @@ node_modules/
 .env
 .env.*
 
-*/bakeoff/run-*.json
-*/bakeoff/run.json
-*/bakeoff/run.jsonl
-*/bakeoff/prompt-start.json
-*/bakeoff/usage-snapshot.json
-*/bakeoff/totals.json
-*/bakeoff/prompts.jsonl
-
-metrics/current/
-metrics/history/
-metrics/report.html
-
 **/.claude/settings.local.json
 
 dist/

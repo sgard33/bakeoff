@@ -7,18 +7,6 @@ import { fileURLToPath } from 'url';
 const root = path.dirname(fileURLToPath(import.meta.url));
 const harnesses = ['cursor', 'claudecode', 'codex', 'copilot'];
 
-const archive = spawnSync(process.execPath, ['metrics.mjs', 'archive'], {
-  cwd: root,
-  encoding: 'utf8',
-  stdio: ['ignore', 'pipe', 'pipe'],
-});
-if (archive.stdout) process.stdout.write(archive.stdout);
-if (archive.stderr) process.stderr.write(archive.stderr);
-if (archive.status !== 0) {
-  console.error('Failed to archive current metrics');
-  process.exit(1);
-}
-
 const starterHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -61,19 +49,6 @@ body {
 }
 `;
 
-// Remove legacy per-harness metrics left by the previous capture system.
-const artifacts = [
-  'bakeoff/run-meta.json',
-  'bakeoff/run-meta.last.json',
-  'bakeoff/run-start.json',
-  'bakeoff/prompt-start.json',
-  'bakeoff/usage-snapshot.json',
-  'bakeoff/prompts.jsonl',
-  'bakeoff/totals.json',
-  'bakeoff/run.log',
-  'bakeoff/run.jsonl',
-];
-
 // Keep all harnesses aligned with the shared marketing kit.
 const sync = spawnSync(process.execPath, ['sync-shared.mjs'], {
   cwd: root,
@@ -91,25 +66,8 @@ for (const harness of harnesses) {
   const dir = path.join(root, harness);
   fs.writeFileSync(path.join(dir, 'index.html'), starterHtml);
   fs.writeFileSync(path.join(dir, 'style.css'), starterCss);
-
-  for (const artifact of artifacts) {
-    const filePath = path.join(dir, artifact);
-    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-  }
-
-  // If bakeoff/ only held timing artifacts, remove the empty dir.
-  const bakeoffDir = path.join(dir, 'bakeoff');
-  if (fs.existsSync(bakeoffDir)) {
-    try {
-      const leftover = fs.readdirSync(bakeoffDir);
-      if (leftover.length === 0) fs.rmdirSync(bakeoffDir);
-    } catch {
-      // Ignore if non-empty or already gone.
-    }
-  }
 }
 
 console.log('Bakeoff demo reset.');
 console.log('- Synced shared/ marketing kit into cursor/, claudecode/, codex/, and copilot/');
 console.log('- Restored starter index.html and style.css');
-console.log('- Archived the prior race and cleared current metrics');
