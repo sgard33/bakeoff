@@ -32,11 +32,28 @@ CURSOR_ADMIN_EMAIL=you@example.com
 `CURSOR_ADMIN_EMAIL` may be omitted when `git config user.email` matches the
 Cursor account.
 
-Open each CLI in its harness directory so project hooks load:
+Open each CLI in its harness directory so it works against the correct files:
 
 - Cursor CLI: `cursor/`
 - Claude Code: `claudecode/`
 - Codex: `codex/`
+
+Cursor resolves project hooks from the git root, so its hooks live under the
+root `.cursor/` directory and run even when the CLI starts in `cursor/`.
+Claude Code and Codex load separate hook configurations from their harness
+folders; they do not conflict with the Cursor hooks.
+
+Tell the user to launch Cursor interactively with an explicit model:
+
+```bash
+cd /Users/sofie.garden/code/demos/bakeoff/cursor
+cursor-agent --model claude-opus-5-thinking-high
+```
+
+Do not launch a measured turn with bare `cursor-agent`; in the current CLI,
+project hooks load when `--model` is explicit, and MAX models are supported.
+Do not use `--print`, which runs `sessionStart` but not the
+`beforeSubmitPrompt` hook that starts turn timing.
 
 Codex project hooks may require explicit trust on first use.
 
@@ -85,6 +102,10 @@ tell the user to run them in both interactive CLIs, then open
 Do not run other Cursor agents during a measured Cursor turn. Admin events are
 filterable by user and time, but not by terminal session. The report shows event
 count and model names so overlap is visible.
+
+Because the Cursor hooks are at the repository root, do not submit prompts in
+any other Cursor agent session in this repository while a race is active. Those
+prompts would be recorded as bakeoff turns.
 
 ## Manual Claude cost
 
