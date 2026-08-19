@@ -1,0 +1,11 @@
+{
+  "name": "Bakeoff demo",
+  "install": "node --check sync-shared.mjs && node --check reset.mjs && node --check lib/normalize.mjs",
+  "terminals": [
+    {
+      "name": "preview",
+      "command": "python3 -m http.server 8080"
+    }
+  ],
+  "ports": [8080]
+}
