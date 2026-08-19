@@ -20,7 +20,7 @@ function assert(condition, message) {
 }
 
 const hookFiles = [
-  'cursor/.cursor/hooks.json',
+  '.cursor/hooks.json',
   'claudecode/.claude/settings.json',
   'codex/.codex/hooks.json',
 ];
@@ -31,8 +31,9 @@ for (const relativePath of hookFiles) {
 }
 
 const scripts = [
-  'cursor/.cursor/hooks/start.sh',
-  'cursor/.cursor/hooks/stop.sh',
+  '.cursor/hooks/session-start.sh',
+  '.cursor/hooks/start.sh',
+  '.cursor/hooks/stop.sh',
   'claudecode/.claude/hooks/stamp-start.sh',
   'claudecode/.claude/hooks/collect-tokens.sh',
   'codex/.codex/hooks/stamp-start.sh',

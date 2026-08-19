@@ -12,7 +12,19 @@ npm run race -- cursor claudecode
 # Or: npm run race -- cursor codex
 ```
 
-Open the two harness folders in their interactive CLIs. Each race is exactly two completed turns:
+Open the two harness folders in their interactive CLIs. Start Cursor with an
+explicit model so project hooks load:
+
+```bash
+cd cursor
+cursor-agent --model claude-opus-5-thinking-high
+```
+
+Do not launch measured Cursor turns with a bare `cursor-agent` command. In the
+current CLI, the hook set loads when `--model` is explicit; MAX models are
+supported. Also stay interactive: `--print` runs `sessionStart` but not the
+`beforeSubmitPrompt` hook that starts turn timing. Each race is exactly two
+completed turns:
 
 1. Plan mode with the same model in both tools.
 2. Agent mode to build the plan. Cursor may switch to Auto Cost for this turn.
@@ -25,12 +37,20 @@ Open the two harness folders in their interactive CLIs. Each race is exactly two
 
 Hooks capture each turn automatically. Open [`metrics/report.html`](metrics/report.html) to watch the report; it refreshes every eight seconds.
 
+Cursor resolves project hooks from the git root even when its CLI starts in
+`cursor/`, so Cursor metrics hooks live in the root `.cursor/` directory.
+Claude Code continues to load its independent hooks from
+`claudecode/.claude/`; the two hook systems do not conflict. Do not run any
+other Cursor agent sessions in this repository while a race is active because
+the root hooks would record those prompts as bakeoff turns.
+
 For a full run-of-show, see [`DEMO.md`](DEMO.md).
 
 ## Layout
 
 ```
 bakeoff/
+├── .cursor/           # root Cursor hooks and bakeoff-demo skill
 ├── PROMPT.md          # paste into each tool
 ├── DEMO.md            # run-of-show
 ├── shared/            # marketing kit (source of truth)

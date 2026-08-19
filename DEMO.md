@@ -15,6 +15,24 @@ CURSOR_ADMIN_EMAIL=you@example.com
 
 Open `cursor/` in Cursor CLI and either `claudecode/` in Claude Code or `codex/` in Codex. Trust the project hooks when the CLI asks.
 
+Cursor loads this repository's hooks from the root `.cursor/` directory even
+when the CLI starts in `cursor/`. Claude Code and Codex use their own hook
+configurations inside their harness folders, so they do not conflict with the
+Cursor hooks. Once a race starts, do not use any other Cursor agent session in
+this repository: the root hooks would record its prompts as bakeoff turns.
+
+Launch Cursor interactively with an explicit Opus 5 model:
+
+```bash
+cd /Users/sofie.garden/code/demos/bakeoff/cursor
+cursor-agent --model claude-opus-5-thinking-high
+```
+
+Do not launch a measured turn with bare `cursor-agent`; in the current CLI,
+project hooks load when `--model` is explicit, and MAX models are supported.
+Do not use `--print`, which runs `sessionStart` but not the
+`beforeSubmitPrompt` hook that starts turn timing.
+
 ## Cursor vs Claude Code
 
 ```bash

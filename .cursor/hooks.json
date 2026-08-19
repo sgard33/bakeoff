@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": "bash \"$CURSOR_PROJECT_DIR/.cursor/hooks/session-start.sh\""
+      }
+    ],
+    "beforeSubmitPrompt": [
+      {
+        "command": "bash \"$CURSOR_PROJECT_DIR/.cursor/hooks/start.sh\""
+      }
+    ],
+    "stop": [
+      {
+        "command": "bash \"$CURSOR_PROJECT_DIR/.cursor/hooks/stop.sh\"",
+        "timeout": 15
+      }
+    ]
+  }
+}
