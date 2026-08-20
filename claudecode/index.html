@@ -3,116 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pricing Plans — Acme</title>
-  <link rel="stylesheet" href="styles/base.css">
-  <link rel="stylesheet" href="styles/buttons.css">
-  <link rel="stylesheet" href="styles/cards.css">
-  <link rel="stylesheet" href="styles/layout.css">
+  <title>Pricing - Starter</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body data-billing="monthly">
-  <main class="pricing-page">
-    <header class="pricing-header">
-      <h1>Simple, transparent pricing</h1>
-      <p class="subtitle muted">Choose the plan that fits your team.</p>
-
-      <div class="billing-toggle" role="group" aria-label="Billing period">
-        <span class="billing-label" data-period="monthly">Monthly</span>
-        <label class="toggle-switch">
-          <input type="checkbox" id="annual-toggle" aria-label="Toggle annual billing">
-          <span class="toggle-slider"></span>
-        </label>
-        <span class="billing-label" data-period="annual">
-          Annual <span class="badge save-badge">Save 20%</span>
-        </span>
-      </div>
-
-      <p class="visually-hidden" role="status" aria-live="polite" id="billing-status">
-        Monthly billing selected.
-      </p>
-    </header>
-
-    <section class="pricing-grid" aria-label="Pricing plans">
-      <article class="pricing-card card" data-tier="starter">
-        <h2 class="tier-name">Starter</h2>
-        <p class="tier-price">
-          <span class="price-currency">$</span><span class="price-amount" data-monthly="19" data-annual="15">19</span>
-          <span class="price-period">/month</span>
-        </p>
-        <p class="tier-billing-note muted">Billed annually · save $48/year</p>
-        <ul class="tier-features">
-          <li>Up to 5 projects</li>
-          <li>Basic analytics</li>
-          <li>Email support</li>
-        </ul>
-        <button type="button" class="btn cta">Get Starter</button>
-      </article>
-
-      <article class="pricing-card card pricing-card--popular" data-tier="pro">
-        <span class="badge badge-popular">Most popular</span>
-        <h2 class="tier-name">Pro</h2>
-        <p class="tier-price">
-          <span class="price-currency">$</span><span class="price-amount" data-monthly="49" data-annual="39">49</span>
-          <span class="price-period">/month</span>
-        </p>
-        <p class="tier-billing-note muted">Billed annually · save $120/year</p>
-        <ul class="tier-features">
-          <li>Unlimited projects</li>
-          <li>Advanced analytics</li>
-          <li>Priority support</li>
-          <li>Team collaboration</li>
-        </ul>
-        <button type="button" class="btn btn--primary cta">Get Pro</button>
-      </article>
-
-      <article class="pricing-card card" data-tier="enterprise">
-        <h2 class="tier-name">Enterprise</h2>
-        <p class="tier-price">
-          <span class="price-currency">$</span><span class="price-amount" data-monthly="99" data-annual="79">99</span>
-          <span class="price-period">/month</span>
-        </p>
-        <p class="tier-billing-note muted">Billed annually · save $240/year</p>
-        <ul class="tier-features">
-          <li>Custom integrations</li>
-          <li>Dedicated account manager</li>
-          <li>SSO &amp; audit logs</li>
-          <li>SLA guarantee</li>
-        </ul>
-        <button type="button" class="btn cta">Contact sales</button>
-      </article>
-    </section>
+<body>
+  <main class="container">
+    <h1>Pricing</h1>
+    <p class="subtitle">Update this page to match the task in PROMPT.md. Search the project for pricing content, brand tokens, and component patterns.</p>
   </main>
-
-  <script>
-    (function () {
-      var toggle = document.getElementById('annual-toggle');
-      var status = document.getElementById('billing-status');
-      var amounts = document.querySelectorAll('.price-amount');
-
-      function applyBilling(announce) {
-        var annual = toggle.checked;
-        var period = annual ? 'annual' : 'monthly';
-
-        document.body.dataset.billing = period;
-
-        for (var i = 0; i < amounts.length; i++) {
-          amounts[i].textContent = amounts[i].dataset[period];
-        }
-
-        if (announce) {
-          status.textContent = annual
-            ? 'Annual billing selected. Prices updated.'
-            : 'Monthly billing selected. Prices updated.';
-        }
-      }
-
-      toggle.addEventListener('change', function () {
-        applyBilling(true);
-      });
-
-      // Browsers restore checkbox state on reload; sync prices without announcing.
-      applyBilling(false);
-    })();
-  </script>
 </body>
 </html>
