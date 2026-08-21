@@ -3,129 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pricing Plans</title>
-  <link rel="stylesheet" href="tokens/brand.css">
+  <title>Pricing - Starter</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main class="pricing-page">
-    <header class="pricing-header">
-      <h1>Simple, transparent pricing</h1>
-      <p class="subtitle muted">Choose the plan that fits your team.</p>
-    </header>
-
-    <div class="billing-wrap">
-      <div class="billing-toggle" role="group" aria-label="Billing period">
-        <span class="billing-label is-active" data-period="monthly">Monthly</span>
-        <label class="toggle-switch">
-          <input type="checkbox" id="annual-toggle" aria-label="Toggle annual billing">
-          <span class="toggle-slider"></span>
-        </label>
-        <span class="billing-label" data-period="annual">
-          Annual <span class="badge save-badge">Save 20%</span>
-        </span>
-      </div>
-      <p id="billing-status" class="sr-only" aria-live="polite">Monthly billing selected</p>
-    </div>
-
-    <section class="pricing-grid" id="pricing-grid" aria-label="Pricing plans"></section>
+  <main class="container">
+    <h1>Pricing</h1>
+    <p class="subtitle">Update this page to match the task in PROMPT.md. Search the project for pricing content, brand tokens, and component patterns.</p>
   </main>
-
-  <script>
-    function escapeHtml(value) {
-      return String(value)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
-    }
-
-    function applyBilling(annual) {
-      document.querySelectorAll('.price-amount').forEach(function (el) {
-        var price = annual ? el.dataset.annual : el.dataset.monthly;
-        el.textContent = '$' + price;
-      });
-
-      document.querySelectorAll('.price-note').forEach(function (el) {
-        if (!annual) {
-          el.hidden = true;
-          el.textContent = '';
-          return;
-        }
-        var monthly = Number(el.dataset.monthly);
-        var annualPrice = Number(el.dataset.annual);
-        var savings = (monthly - annualPrice) * 12;
-        el.hidden = false;
-        el.textContent = 'Billed annually. Save $' + savings + '/year';
-      });
-
-      document.querySelectorAll('.billing-label').forEach(function (label) {
-        var isAnnualLabel = label.dataset.period === 'annual';
-        label.classList.toggle('is-active', annual ? isAnnualLabel : !isAnnualLabel);
-      });
-
-      var live = document.getElementById('billing-status');
-      if (live) {
-        live.textContent = annual ? 'Annual billing selected' : 'Monthly billing selected';
-      }
-    }
-
-    function renderPlans(data) {
-      var grid = document.getElementById('pricing-grid');
-      var recommended = data.recommended_plan;
-
-      grid.innerHTML = data.plans.map(function (plan) {
-        var popular = plan.id === recommended;
-        var classes = ['pricing-card', 'card'];
-        if (popular) classes.push('pricing-card--popular');
-
-        var badge = popular
-          ? '<span class="badge badge-popular">' + escapeHtml(data.popular_badge) + '</span>'
-          : '';
-
-        var btnClass = popular ? 'btn btn--primary cta' : 'btn cta';
-        var features = plan.features.map(function (feature) {
-          return '<li>' + escapeHtml(feature) + '</li>';
-        }).join('');
-
-        return (
-          '<article class="' + classes.join(' ') + '" data-tier="' + escapeHtml(plan.id) + '">' +
-            badge +
-            '<h2 class="tier-name">' + escapeHtml(plan.name) + '</h2>' +
-            '<p class="tier-price">' +
-              '<span class="price-amount" data-monthly="' + plan.monthly + '" data-annual="' + plan.annual + '">$' + plan.monthly + '</span>' +
-              '<span class="price-period">/month</span>' +
-            '</p>' +
-            '<p class="price-note muted" data-monthly="' + plan.monthly + '" data-annual="' + plan.annual + '" hidden></p>' +
-            '<ul class="tier-features">' + features + '</ul>' +
-            '<button type="button" class="' + btnClass + '">' + escapeHtml(plan.cta) + '</button>' +
-          '</article>'
-        );
-      }).join('');
-    }
-
-    (function init() {
-      var grid = document.getElementById('pricing-grid');
-      var toggle = document.getElementById('annual-toggle');
-
-      fetch('content/pricing.json')
-        .then(function (res) {
-          if (!res.ok) throw new Error('Failed to load pricing');
-          return res.json();
-        })
-        .then(function (data) {
-          renderPlans(data);
-          applyBilling(toggle.checked);
-          toggle.addEventListener('change', function () {
-            applyBilling(toggle.checked);
-          });
-        })
-        .catch(function () {
-          grid.innerHTML = '<p class="fetch-error">Serve this folder over HTTP to load plan prices. Example: <code>python3 -m http.server 8080</code></p>';
-          var toggleWrap = document.querySelector('.billing-toggle');
-          if (toggleWrap) toggleWrap.remove();
-        });
-    })();
-  </script>
 </body>
 </html>
